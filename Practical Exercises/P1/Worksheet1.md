@@ -45,6 +45,9 @@ platform you have to essentially start again.
 ### Frontend
 
 1. Scriptable web app with a default look that walks users through a survey.
+Web app to be built with whatever framework the government agency developers
+are familiar with, but React.js is a good modern option, or Vue.js if there
+are concerns about vendor lock-in from using a Facebook product.
 (Web app is platform-independant to accomodate for anyone with a computer and
 internet access, scriptability allows agencies to extend the functionality of
 the site to accommodate a survey's specific needs).
