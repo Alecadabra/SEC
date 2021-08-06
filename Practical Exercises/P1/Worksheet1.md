@@ -44,32 +44,36 @@ platform you have to essentially start again.
 
 ### Frontend
 
-1. Scriptable web app with a default look that walks users through a survey. (Web app
-is platform-independant to accomodate for anyone with a computer and internet
-access, scriptability allows agencies to extend the functionality of the site
-to accommodate a survey's specific needs).
+1. Scriptable web app with a default look that walks users through a survey.
+(Web app is platform-independant to accomodate for anyone with a computer and
+internet access, scriptability allows agencies to extend the functionality of
+the site to accommodate a survey's specific needs).
 
 2. Direct databse entry for agency employees entering paper-based survey
 results via Microsoft Access (Government agencies use a standardised Windows
-environment).
+environment, employees can *probably* be trusted with this level of access).
 
 3. Paper form given to users with no computer access.
 
-4. Survey data access via Microsoft Access (Government agencies use a standardised Windows
-environment, Access can apparently do charts).
+4. Survey data access via Microsoft Access (Government agencies use a
+standardised Windows environment, Access can apparently do charts).
 
 ### Authentication
 
-1. Government username/password authentication system for users on the web app
-form.
+1. Existing government username/password authentication system for users on the
+web app form.
 
 2. Internal agency employee authentication for agency employees on the
 spreadsheet and data access web app.
 
-### Database
-
-Separate database table for each kind of survey. Paper based surveys and
-normally filled out surveys are indistinguishable on the database.
-
 ### Backend
 
+Network separated database that provides database access to privileged users
+all tied into a relational Microsoft Access (Because they use Windows and 
+relational is flexible).
+
+### Database
+
+Separate database table for each kind of survey, to accommodate for different
+structures of data for different surveys. Paper based surveys and normally
+filled out surveys are indistinguishable on the database.
