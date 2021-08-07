@@ -42,10 +42,6 @@ platform you have to essentially start again.
 
 ## Question 4
 
-### Diagram
-
-![Diagram](Practical Exercises\P1\Architecture Diagram.png)
-
 ### Frontend
 
 1. Scriptable web app with a default look that walks users through a survey.
