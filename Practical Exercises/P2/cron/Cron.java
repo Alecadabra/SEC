@@ -12,7 +12,7 @@ public class Cron
         logger.start();
         
         Scheduler scheduler = new Scheduler();
-        scheduler.start();        
+        scheduler.start();
         
         new UI(scheduler, logger).menu();
     }

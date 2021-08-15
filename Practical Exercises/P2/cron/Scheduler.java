@@ -6,16 +6,23 @@ import java.util.*;
  */
 public class Scheduler
 {
-    // ...
+    private List<Job> jobList = Collections.synchronizedList(
+        new ArrayList<Job>()
+    );
+    private Thread thread = new Thread(() -> {
+        for (Job job : jobList) {
+            
+        }
+    });
 
     public void addJob(Job newJob)
     {
-        // ...
+        this.jobList.add(newJob);
     }
     
     public void start()
     {
-        // ...
+        this.thread.start();
     }
 
     public void stop()
