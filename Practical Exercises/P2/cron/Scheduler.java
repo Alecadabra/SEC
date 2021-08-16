@@ -5,9 +5,11 @@ import java.util.*;
  * appropriate time. (You need to fill in the details!)
  */
 public class Scheduler {
+    // Job list, wrapped in synchronizedList for thread safety
     private final List<Job> jobList
         = Collections.synchronizedList(new ArrayList<Job>());
     private final Thread thread = new Thread(this::run);
+    // Incremented int of seconds passed while running
     private int secondsPassed = 0;
 
     public void addJob(Job newJob) {

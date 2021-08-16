@@ -39,12 +39,27 @@ public class Job implements Runnable {
 
             // We've now reached the end of the command's output, which
             // generally means the command has finished.
-            this.logger.setMessage(this.command + ": " + output.toString());
-        } catch (IOException | InterruptedException e) {
+            StringBuilder sb = new StringBuilder();
+            sb.append("-------------------\n");
+            sb.append("New output\n");
+            sb.append("- Command: '" + this.command + "'\n");
+            sb.append("- Delay:   " + this.delay + "\n");
+            sb.append("- Output string:\n");
+            sb.append(output.toString());
+            sb.append("-------------------\n\n");
+
+            this.logger.setMessage(sb.toString());
+            
+        } catch (IOException e) {
             System.out.println(
-                "Job \"" + this.command + "\" encountered an error"
+                "Job \"" + this.command + "\" encountered an IO error"
             );
             e.printStackTrace();
+        } catch (InterruptedException e) {
+            System.out.println(
+                "Job \"" + this.command
+                + "\" was interrupted while updating the log file"
+            );
         }
     }
 }

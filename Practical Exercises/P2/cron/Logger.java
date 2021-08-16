@@ -12,9 +12,11 @@ public class Logger {
 
     public void setMessage(String newMessage) throws InterruptedException {
         synchronized (this.monitor) {
+            // Wait until the logger thread has cleared the message
             while (this.currentMessage != null) {
                 this.monitor.wait();
             }
+            // Set the message field and notify the monitor
             this.currentMessage = newMessage;
             this.monitor.notifyAll();
         }
@@ -32,26 +34,29 @@ public class Logger {
         try {
             synchronized (monitor) {
                 while (true) {
+                    // Wait until another thread sets the message
                     while (this.currentMessage == null) {
                         this.monitor.wait();
                     }
-                    String message = this.currentMessage;
+                    // Grab the non-null current message and clear the field
+                    String localMessage = this.currentMessage;
                     this.currentMessage = null;
+                    // Notify the other threads
+                    this.monitor.notifyAll();
 
+                    // Append to the logging file
                     try (PrintWriter pw = new PrintWriter(
                         new FileWriter("cron.log", true)
                     )) {
-                        pw.println(message);
+                        pw.println(localMessage);
                     } catch (IOException e) {
                         System.out.println("An IO error occured");
                         e.printStackTrace();
                     }
-
-                    this.monitor.notifyAll();
                 }
             }
         } catch (InterruptedException e) {
-            System.out.println("Logger closing");
+            // Expected - Do nothing
         }
     }
 }
