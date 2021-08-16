@@ -15,6 +15,10 @@ public class Job implements Runnable {
         this.logger = logger;
     }
 
+    public int getDelay() {
+        return this.delay;
+    }
+
     @Override
     public void run() {
         try {
@@ -35,11 +39,12 @@ public class Job implements Runnable {
 
             // We've now reached the end of the command's output, which
             // generally means the command has finished.
-            System.out.println(command + ": " + output.toString());
-        } catch (IOException e) {
+            this.logger.setMessage(this.command + ": " + output.toString());
+        } catch (IOException | InterruptedException e) {
+            System.out.println(
+                "Job \"" + this.command + "\" encountered an error"
+            );
             e.printStackTrace();
-        } /*
-           * catch (InterruptedException e) { e.printStackTrace(); }
-           */
+        }
     }
 }
