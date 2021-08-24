@@ -24,23 +24,19 @@ public class FSFileFinder {
     }
 
     private void run() {
-        this.filter.start();
         try {
             // Recurse through the directory tree
             Files.walkFileTree(Paths.get(searchPath), new SimpleFileVisitor<Path>() {
                 @Override
                 public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
-                    try {
-                        // Add the new path to the filter's queue
-                        FSFileFinder.this.filter.addPath(file.toString());
-                    } catch (InterruptedException e) {
-                        // If interrupted, stop the search
-                        return FileVisitResult.TERMINATE;
-                    }
+                    // Add the new path to the filter's queue
+                    FSFileFinder.this.filter.addPath(file.toString());
 
                     return FileVisitResult.CONTINUE;
                 }
             });
+            // Tell the filter that we're done with it
+            this.filter.shutdown();
         } catch (IOException e) {
             // This error handling is a bit quick-and-dirty, but it will suffice here.
             Platform.runLater(() -> {
