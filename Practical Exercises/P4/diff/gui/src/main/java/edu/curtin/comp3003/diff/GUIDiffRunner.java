@@ -2,7 +2,6 @@ package edu.curtin.comp3003.diff;
 
 import java.io.*;
 import java.awt.*;
-import java.awt.event.*;
 import javax.swing.*;
 
 /**
