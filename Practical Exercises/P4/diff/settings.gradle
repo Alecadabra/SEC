@@ -8,3 +8,6 @@
  */
 
 rootProject.name = 'diff'
+include 'cli'
+include 'gui'
+include 'library'
