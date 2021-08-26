@@ -33,7 +33,6 @@ class DiffTest extends Specification
             "abxyzcd" | "xyz"      || "xyz"
             "xyz"     | "xabycdz"  || "xyz"
             "xabycdz" | "xyz"      || "xyz"
-//          "abcdxyz" | "xyzabcd"  || "abcd"
-            "abcdxyz" | "xyzabcd"  || "abcd_OUT_OF_CHEESE_ERROR"
+            "abcdxyz" | "xyzabcd"  || "abcd"
     }
 }
