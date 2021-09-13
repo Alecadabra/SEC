@@ -1,6 +1,7 @@
 plugins {
     id 'application'
     id 'org.openjfx.javafxplugin' version '0.0.10'
+    id "org.jetbrains.kotlin.jvm" version "1.5.30"
 }
 
 repositories {
@@ -12,5 +13,5 @@ javafx {
 }
 
 application {
-    mainClass = 'sillypackagenamepleasechange.SillyClassNamePleaseChange'
+    mainClass = 'alec.sec.assignment1.Assignment1'
 }
