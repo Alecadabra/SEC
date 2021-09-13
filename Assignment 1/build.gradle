@@ -9,9 +9,14 @@ repositories {
 }
 
 javafx {
-    modules = [ 'javafx.controls' ]
+    modules = ['javafx.controls']
 }
 
 application {
-    mainClass = 'alec.sec.assignment1.Assignment1'
+    mainClass = 'alec.sec.assignment1.UserInterface'
+}
+
+dependencies {
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-javafx:1.5.2'
 }

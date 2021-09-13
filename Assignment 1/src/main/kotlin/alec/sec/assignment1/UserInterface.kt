@@ -8,9 +8,14 @@ import javafx.scene.control.*
 import javafx.scene.layout.BorderPane
 import javafx.stage.DirectoryChooser
 import javafx.stage.Stage
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.launch
 import java.io.File
 
-class Assignment1 : Application() {
+@FlowPreview
+class UserInterface : Application() {
     private val resultTable = TableView<ComparisonResult>()
     private val progressBar = ProgressBar()
 
@@ -69,32 +74,33 @@ class Assignment1 : Application() {
         stage.show()
     }
 
+    fun addComparisonResult(comparisonResult: ComparisonResult) {
+        this.resultTable.items.add(comparisonResult)
+    }
+
     private fun crossCompare(stage: Stage) {
         val dc = DirectoryChooser().also {
             it.initialDirectory = File(".")
             it.title = "Choose directory"
         }
-        val directory = dc.showDialog(stage)
-        println("Comparing files within $directory...")
+        val directory: File? = dc.showDialog(stage)
+        if (directory != null) {
+            println("Comparing files within $directory...")
 
-        // Extremely fake way of demonstrating how to use the progress bar (noting that it can 
-        // actually only be set to one value, from 0-1, at a time.)
-        progressBar.progress = 0.25
-        progressBar.progress = 0.5
-        progressBar.progress = 0.6
-        progressBar.progress = 0.85
-        progressBar.progress = 1.0
+            val fileSequence = FileSearcher(directory, this)
 
-        // Extremely fake way of demonstrating how to update the table (noting that this shouldn't
-        // just happen once at the end, but progressively as each result is obtained.)
-        val newResults = listOf(
-            ComparisonResult("Example File 1", "Example File 3", 0.31),
-            ComparisonResult("Example File 2", "Example File 3", 0.45),
-            ComparisonResult("Example File 1", "Example File 2", 0.75)
-        )
-        resultTable.items.setAll(newResults)
+            CoroutineScope(Dispatchers.IO).launch { fileSequence.start() }
 
-        // progressBar.setProgress(0.0); // Reset progress bar after successful comparison?
+            // Extremely fake way of demonstrating how to use the progress bar (noting that it can
+            // actually only be set to one value, from 0-1, at a time.)
+//            progressBar.progress = 0.25
+//            progressBar.progress = 0.5
+//            progressBar.progress = 0.6
+//            progressBar.progress = 0.85
+//            progressBar.progress = 1.0
+
+            // progressBar.setProgress(0.0); // Reset progress bar after successful comparison?
+        }
     }
 
     private fun stopComparison() {
