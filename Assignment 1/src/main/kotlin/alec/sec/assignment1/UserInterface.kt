@@ -13,11 +13,17 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.launch
 import java.io.File
+import kotlin.properties.Delegates
 
 @FlowPreview
 class UserInterface : Application() {
     private val resultTable = TableView<ComparisonResult>()
     private val progressBar = ProgressBar()
+
+    var progress: Int by Delegates.observable(0) { _, _, newVal ->
+        this.progressBar.progress = newVal.toDouble() / progressTotal
+    }
+    var progressTotal = Int.MAX_VALUE
 
     override fun start(stage: Stage) {
         stage.title = "Alec Assignment 1"
@@ -78,6 +84,11 @@ class UserInterface : Application() {
         this.resultTable.items.add(comparisonResult)
     }
 
+    fun incrementProgressBar() {
+        this.progress++
+        this.progressBar.progress = this.progress.toDouble() / this.progressTotal
+    }
+
     private fun crossCompare(stage: Stage) {
         val dc = DirectoryChooser().also {
             it.initialDirectory = File(".")
@@ -90,16 +101,6 @@ class UserInterface : Application() {
             val fileSequence = FileSearcher(directory, this)
 
             CoroutineScope(Dispatchers.IO).launch { fileSequence.start() }
-
-            // Extremely fake way of demonstrating how to use the progress bar (noting that it can
-            // actually only be set to one value, from 0-1, at a time.)
-//            progressBar.progress = 0.25
-//            progressBar.progress = 0.5
-//            progressBar.progress = 0.6
-//            progressBar.progress = 0.85
-//            progressBar.progress = 1.0
-
-            // progressBar.setProgress(0.0); // Reset progress bar after successful comparison?
         }
     }
 
