@@ -1,17 +1,19 @@
 package alec.sec.assignment1
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.withContext
 import java.io.File
 
+@ObsoleteCoroutinesApi
 @FlowPreview
 class FileSearcher(
     private val rootDirectory: File,
     private val ui: UserInterface,
+    private val resultsWriter: ResultsWriter = ResultsWriter(),
     private val similarityThreshold: Double = 0.5,
 ) {
+    private fun File.isNotEmpty(): Boolean = this.reader().use { it.read() != -1 }
+
     private val fileFlow: Flow<File>
         get() = rootDirectory.absoluteFile.walkBottomUp().asFlow()
             .cancellable()
@@ -20,47 +22,50 @@ class FileSearcher(
             .filter { file ->
                 setOf(".txt", ".md", ".java", ".kt", ".cs").any { ext -> file.name.endsWith(ext) }
             }
-            .filter { file -> file.length() != 0L } // TODO Implement cheaper empty check
+            .filter { file -> file.isNotEmpty() }
             .flowOn(Dispatchers.IO)
 
     // TODO Implement cancel functionality
     private val fileSearchFlow = this.fileFlow.flatMapConcat { file1 ->
         this.fileFlow
-            // The upper right sub matrix of the logical comparison matrix with the leading
-            // diagonal removed. Ensures files are only compared once and are not compared
-            // to themselves
+            // Don't compare a file to itself, and only compare each file once
             .filter { file2 -> file1.absolutePath > file2.absolutePath }
+            .flowOn(Dispatchers.Default)
             .map { file2 ->
+                ReadFile(file1, file1.readText()) to ReadFile(file2, file2.readText())
+            }
+            .flowOn(Dispatchers.IO)
+            .map { (readFile1, readFile2) ->
                 ComparisonResult(
-                    file1.name,
-                    file2.name,
-                    calcSimilarity(file1.readText(), file2.readText()),
+                    readFile1.file.name,
+                    readFile2.file.name,
+                    calcSimilarity(readFile1.string, readFile2.string),
                 )
             }
-            //.onEach { delay(1000) } // TODO Remove
-            //.onEach {  } // TODO Write to results.csv
+            .flowOn(Dispatchers.Default)
+            .onEach { result -> this.resultsWriter.writeResult(result) }
             .flowOn(Dispatchers.IO)
             .onEach { this.ui.progress++ }
             .flowOn(Dispatchers.Main)
     }
         .filter { result -> result.similarity >= similarityThreshold }
+        .onEach { result -> this.ui.addComparisonResult(result) }
         .catch { e -> println("An error happened: ${e.message}") }
+        .flowOn(Dispatchers.Main)
 
-    suspend fun start() {
+    suspend fun launchIn(scope: CoroutineScope): Job {
         // The number of comparisons is half size of the n * n comparison matrix, with the leading
         // diagonal removed, where n is the number of files after filtering.
-        val numComparisons = this.fileFlow.count().let { (it * it - it) / 2 }
+        val numComparisons = withContext(Dispatchers.IO) {
+             this@FileSearcher.fileFlow.count().let { (it * it - it) / 2 }
+        }
 
         // Set the total value for the UI progress bar
-        withContext(Dispatchers.Main) {
-            this@FileSearcher.ui.progressTotal = numComparisons
-        }
+        withContext(Dispatchers.Main) { this@FileSearcher.ui.progressTotal = numComparisons }
 
-        // Collect up results from fileSearchFlow and send to UI
-        this.fileSearchFlow.collect { result ->
-            withContext(Dispatchers.Main) {
-                this@FileSearcher.ui.addComparisonResult(result)
-            }
-        }
+        // Run and terminate the flow
+        return this.fileSearchFlow.launchIn(scope)
     }
 }
+
+data class ReadFile(val file: File, val string: String)

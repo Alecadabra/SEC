@@ -8,13 +8,11 @@ import javafx.scene.control.*
 import javafx.scene.layout.BorderPane
 import javafx.stage.DirectoryChooser
 import javafx.stage.Stage
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import java.io.File
 import kotlin.properties.Delegates
 
+@ObsoleteCoroutinesApi
 @FlowPreview
 class UserInterface : Application() {
     private val resultTable = TableView<ComparisonResult>()
@@ -24,6 +22,8 @@ class UserInterface : Application() {
         this.progressBar.progress = newVal.toDouble() / progressTotal
     }
     var progressTotal = Int.MAX_VALUE
+
+    var searchJob: Job? = null
 
     override fun start(stage: Stage) {
         stage.title = "Alec Assignment 1"
@@ -84,12 +84,12 @@ class UserInterface : Application() {
         this.resultTable.items.add(comparisonResult)
     }
 
-    fun incrementProgressBar() {
-        this.progress++
-        this.progressBar.progress = this.progress.toDouble() / this.progressTotal
-    }
-
     private fun crossCompare(stage: Stage) {
+        this.resultTable.items.clear()
+        this.progress = 0
+        this.progressTotal = Int.MAX_VALUE
+        this.searchJob = null
+
         val dc = DirectoryChooser().also {
             it.initialDirectory = File(".")
             it.title = "Choose directory"
@@ -98,14 +98,19 @@ class UserInterface : Application() {
         if (directory != null) {
             println("Comparing files within $directory...")
 
-            val fileSequence = FileSearcher(directory, this)
+            this.searchJob = runBlocking(Dispatchers.IO) {
+                val resultsWriter = ResultsWriter().also { it.clearFile() }
 
-            CoroutineScope(Dispatchers.IO).launch { fileSequence.start() }
+                val fileSequence = FileSearcher(directory, ui = this@UserInterface, resultsWriter = resultsWriter)
+
+                fileSequence.launchIn(this)
+            }
         }
     }
 
     private fun stopComparison() {
         println("Stopping comparison...")
+        this.searchJob?.cancel()
     }
 
     companion object {
