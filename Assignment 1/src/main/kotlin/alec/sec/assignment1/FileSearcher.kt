@@ -9,81 +9,98 @@ import java.io.File
 class FileSearcher(
     private val rootDirectory: File,
     private val ui: UserInterface,
-    private val resultsWriter: ResultsWriter = ResultsWriter(),
+    private val resultsWriter: ResultsFileWriter = ResultsFileWriter(),
     private val similarityThreshold: Double = 0.5,
 ) {
-    private fun File.isNotEmpty(): Boolean = this.reader().use { it.read() != -1 }
-
+    // A flow of all valid files to search through
     private val fileFlow: Flow<File>
+        // Recursive walk through the contents of the directory
         get() = rootDirectory.absoluteFile.walkBottomUp().asFlow()
-            .cancellable()
-            // Only operate on files (They could be directories)
+            // IO: Only operate on files (They could be directories)
             .filter { file -> file.isFile }
+            // IO: Only support 'text' file extensions
             .filter { file ->
                 setOf(".txt", ".md", ".java", ".kt", ".cs").any { ext -> file.name.endsWith(ext) }
             }
-            .filter { file -> file.length() != 0L } // TODO
+            // IO: Skip empty files
+            .filter { file -> file.reader().use { it.read() != -1 } }
+            // Run above operations in the IO context
             .flowOn(Dispatchers.IO)
 
-    // TODO Implement cancel functionality
+    // A flow that handles all parts of the file search, fundamentally by combining each element
+    // of fileFlow with another fileFlow.
     private val fileSearchFlow = this.fileFlow.flatMapConcat { file1 ->
         this.fileFlow
-            // Don't compare a file to itself, and only compare each file once
+            // CPU: Don't compare a file to itself, and only compare each file once
             .filter { file2 -> file1.absolutePath > file2.absolutePath }
+            // Run above operations in the CPU context
             .flowOn(Dispatchers.Default)
-//            .map { file2 ->
-//                ReadFile(file1, file1.readText()) to ReadFile(file2, file2.readText())
-//            } // TODO
-            .flowOn(Dispatchers.IO)
-//            .map { (readFile1, readFile2) ->
-//                ComparisonResult(
-//                    readFile1.file.name,
-//                    readFile2.file.name,
-//                    calcSimilarity(readFile1.string, readFile2.string),
-//                )
-//            }TODO
+            // IO: Read in the files into strings, and then into short-lived data classes
             .map { file2 ->
+                ReadFile(file1, file1.readText()) to ReadFile(file2, file2.readText())
+            }
+            // Run above operations in the IO context
+            .flowOn(Dispatchers.IO)
+            // CPU: Compare the files and package into a comparison result
+            .map { (readFile1, readFile2) ->
                 ComparisonResult(
-//TODO Remove
-                    file1.name,
-                    file2.name,
-                    calcSimilarity(file1.readText(), file2.readText()),
+                    readFile1.file.name,
+                    readFile2.file.name,
+                    calcSimilarity(readFile1.string, readFile2.string),
                 )
             }
+            // CPU: Send the result to the results writer (Uses its own UI thread)
+            .onEach { result -> this.resultsWriter.addResult(result) }
+            // Run above operations in the CPU context
             .flowOn(Dispatchers.Default)
-//            .onEach { result -> this.resultsWriter.writeResult(result) }TODO
-            .flowOn(Dispatchers.IO)
+            // UI: Update the progress bar value
             .onEach { this.ui.progress++ }
+            // UI: Equivalent of handling InterruptedException
+            .onEach {
+                if (!currentCoroutineContext().isActive) {
+                    this.ui.status = "Cancelled!"
+                    println("Cancelled!!")
+                    currentCoroutineContext().ensureActive()
+                }
+            }
+            // Run above operations in the GUI context
             .flowOn(Dispatchers.Main)
     }
+        // CPU: Only display results above the threshold
         .filter { result -> result.similarity >= similarityThreshold }
-//        .onEach { result -> this.ui.addComparisonResult(result) }
-        .catch { e -> println("An error happened: ${e.message}") }
+        // Run above operations in the CPU context
         .flowOn(Dispatchers.Main)
+        // UI: Add the comparison result to the gui's table
+        .onEach { result -> this.ui.results.add(result) }
+        // Run above operations in the GUI context
+        .flowOn(Dispatchers.Main)
+        .onStart {
+            ui.status = "Counting files"
 
-    suspend fun launchIn(scope: CoroutineScope): Job {
-        // The number of comparisons is half size of the n * n comparison matrix, with the leading
-        // diagonal removed, where n is the number of files after filtering.
-        val numComparisons = withContext(Dispatchers.IO) {
-            this@FileSearcher.fileFlow.count().let { (it * it - it) / 2 }
-        }
+            // The number of comparisons is half size of the n * n comparison matrix, with the
+            // leading diagonal removed, where n is the number of files after filtering.
+            val numFiles = fileFlow.count()
+            val numComparisons = numFiles.let { (it * it - it) / 2 }
 
-        // Set the total value for the UI progress bar
-        withContext(Dispatchers.Main) { this@FileSearcher.ui.progressTotal = numComparisons }
-
-        // Run and terminate the flow
-//        return scope.launch {
-//            this@FileSearcher.fileSearchFlow.collect { result ->
-//                this@FileSearcher.ui.addComparisonResult(result)
-//            }
-//        }
-        this@FileSearcher.fileSearchFlow.collect { result ->
+            // Set the total value for the UI progress bar
             withContext(Dispatchers.Main) {
-                this@FileSearcher.ui.addComparisonResult(result)
+                ui.progressTotal = numComparisons
+                ui.progress = 0
+                ui.status = "Searching through $numFiles files ($numComparisons comparisons)"
             }
         }
-        return Job()
-    }
-}
+        // Handle the cases of completion (Equivalent of handling InterruptedException)
+        .onCompletion { e: Throwable? ->
+            ui.status = when (e) {
+                null -> "Done!"
+                is CancellationException -> "Stopped!"
+                else -> "Error! (${e.message})"
+            }
+        }
 
-data class ReadFile(val file: File, val string: String)
+    // Run and terminate the entire search flow
+    suspend fun run() = this.fileSearchFlow.collect()
+
+    // Represents a file and it's contents as a string
+    private data class ReadFile(val file: File, val string: String)
+}

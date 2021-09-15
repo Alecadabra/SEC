@@ -1,0 +1,10 @@
+FileSearcher.kt,ComparisonResult.kt,0.05072620854107956
+LongestCommonSubsequence.kt,ComparisonResult.kt,0.1275820170109356
+LongestCommonSubsequence.kt,FileSearcher.kt,0.3380422137277713
+ResultsFileWriter.kt,ComparisonResult.kt,0.18071242397914858
+ResultsFileWriter.kt,FileSearcher.kt,0.26946758420862005
+ResultsFileWriter.kt,LongestCommonSubsequence.kt,0.3405088062622309
+UserInterface.kt,ComparisonResult.kt,0.049707602339181284
+UserInterface.kt,FileSearcher.kt,0.45834698111147504
+UserInterface.kt,LongestCommonSubsequence.kt,0.32751937984496127
+UserInterface.kt,ResultsFileWriter.kt,0.25978585220291384

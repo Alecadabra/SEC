@@ -6,24 +6,37 @@ import javafx.event.EventHandler
 import javafx.scene.Scene
 import javafx.scene.control.*
 import javafx.scene.layout.BorderPane
+import javafx.scene.text.Text
 import javafx.stage.DirectoryChooser
 import javafx.stage.Stage
 import kotlinx.coroutines.*
 import java.io.File
-import kotlin.properties.Delegates
 
 @ObsoleteCoroutinesApi
 @FlowPreview
 class UserInterface : Application() {
+    // UI Components
     private val resultTable = TableView<ComparisonResult>()
     private val progressBar = ProgressBar()
+    private val statusView = Text("Waiting")
 
-    var progress: Int by Delegates.observable(0) { _, _, newVal ->
-        this.progressBar.progress = newVal.toDouble() / progressTotal
-    }
+    // Publicly configurable UI backing values
     var progressTotal = Int.MAX_VALUE
+    var progress: Int = 0
+        set(value) {
+            this.progressBar.progress = value.toDouble() / progressTotal
+            field = value
+        }
+    val results: MutableList<ComparisonResult>
+        get() = this.resultTable.items
+    var status: String
+        get() = this.statusView.text
+        set(value) {
+            this.statusView.text = value
+        }
 
-    var searchJob: Job? = null
+    // The job the file searcher runs on, so it can be cancelled
+    private var searchJob: Job? = null
 
     override fun start(stage: Stage) {
         stage.title = "Alec Assignment 1"
@@ -33,6 +46,7 @@ class UserInterface : Application() {
         val compareBtn = Button("Compare...")
         val stopBtn = Button("Stop")
         val toolBar = ToolBar(compareBtn, stopBtn)
+        val footerBar = ToolBar(progressBar, statusView)
 
         // Set up button event handlers.
         compareBtn.onAction = EventHandler { crossCompare(stage) }
@@ -72,16 +86,12 @@ class UserInterface : Application() {
         val mainBox = BorderPane().also {
             it.top = toolBar
             it.center = resultTable
-            it.bottom = progressBar
+            it.bottom = footerBar
         }
         val scene = Scene(mainBox)
         stage.scene = scene
         stage.sizeToScene()
         stage.show()
-    }
-
-    fun addComparisonResult(comparisonResult: ComparisonResult) {
-        this.resultTable.items.add(comparisonResult)
     }
 
     private fun crossCompare(stage: Stage) {
@@ -90,27 +100,34 @@ class UserInterface : Application() {
         this.progressTotal = Int.MAX_VALUE
         this.searchJob = null
 
-        val dc = DirectoryChooser().also {
+        val directory: File? = DirectoryChooser().also {
             it.initialDirectory = File(".")
             it.title = "Choose directory"
-        }
-        val directory: File? = dc.showDialog(stage)
+        }.showDialog(stage)
+
         if (directory != null) {
             println("Comparing files within $directory...")
 
-            this.searchJob = runBlocking(Dispatchers.IO) {
-                val resultsWriter = ResultsWriter().also { it.clearFile() }
+            val resultsWriter = ResultsFileWriter()
 
-                val fileSequence = FileSearcher(directory, ui = this@UserInterface, resultsWriter = resultsWriter)
+            val fileSequence = FileSearcher(
+                rootDirectory = directory,
+                ui = this@UserInterface,
+                resultsWriter = resultsWriter
+            )
 
-                fileSequence.launchIn(this)
+            this.searchJob = CoroutineScope(Dispatchers.IO).launch {
+                fileSequence.run()
             }
         }
     }
 
     private fun stopComparison() {
         println("Stopping comparison...")
-        this.searchJob?.cancel()
+        if (this.searchJob != null) {
+//            this.statusView.text = "Cancelled"
+            this.searchJob?.cancel()
+        }
     }
 
     companion object {
