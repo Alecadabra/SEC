@@ -125,7 +125,7 @@ class UserInterface : Application() {
     private fun stopComparison() {
         println("Stopping comparison...")
         if (this.searchJob != null) {
-//            this.statusView.text = "Cancelled"
+            this.status = "Stopping..."
             this.searchJob?.cancel()
         }
     }

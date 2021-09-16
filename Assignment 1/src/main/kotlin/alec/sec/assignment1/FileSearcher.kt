@@ -41,6 +41,8 @@ class FileSearcher(
             }
             // Run above operations in the IO context
             .flowOn(Dispatchers.IO)
+            // Run the above and below code in parallel
+            .buffer()
             // CPU: Compare the files and package into a comparison result
             .map { (readFile1, readFile2) ->
                 ComparisonResult(
@@ -53,6 +55,8 @@ class FileSearcher(
             .onEach { result -> this.resultsWriter.addResult(result) }
             // Run above operations in the CPU context
             .flowOn(Dispatchers.Default)
+            // Run the above and below code in parallel
+            .buffer()
             // UI: Update the progress bar value
             .onEach { this.ui.progress++ }
             // UI: Equivalent of handling InterruptedException
