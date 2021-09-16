@@ -29,4 +29,6 @@ class ResultsFileWriter(private val resultsFile: File = File("results.csv")) : C
         val (file1, file2, similarity) = result
         resultsFile.appendText("$file1,$file2,$similarity\n")
     }
+
+    fun closeContext() = this.coroutineContext.close()
 }

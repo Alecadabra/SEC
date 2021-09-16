@@ -4,6 +4,11 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import java.io.File
 
+/**
+ * Handles asynchronously searching recursively through the given [rootDirectory] and comparing
+ * every file to each other, updating results on the [ui] and [resultsWriter], with a given
+ * [similarityThreshold] for displaying results in the [ui] table
+ */
 @ObsoleteCoroutinesApi
 @FlowPreview
 class FileSearcher(
@@ -12,6 +17,12 @@ class FileSearcher(
     private val resultsWriter: ResultsFileWriter = ResultsFileWriter(),
     private val similarityThreshold: Double = 0.5,
 ) {
+
+    private var startTime: Long = 0L
+
+    // Run and terminate the entire search flow
+    suspend fun run() = this.fileSearchFlow.collect()
+
     // A flow of all valid files to search through
     private val fileFlow: Flow<File>
         // Recursive walk through the contents of the directory
@@ -41,7 +52,7 @@ class FileSearcher(
             }
             // Run above operations in the IO context
             .flowOn(Dispatchers.IO)
-            // Run the above and below code in parallel
+            // Run the above IO code and below UI code in parallel
             .buffer()
             // CPU: Compare the files and package into a comparison result
             .map { (readFile1, readFile2) ->
@@ -51,22 +62,16 @@ class FileSearcher(
                     calcSimilarity(readFile1.string, readFile2.string),
                 )
             }
-            // CPU: Send the result to the results writer (Uses its own UI thread)
+            // CPU: Send the result to the resultsWriter (Uses its own UI thread)
             .onEach { result -> this.resultsWriter.addResult(result) }
             // Run above operations in the CPU context
             .flowOn(Dispatchers.Default)
-            // Run the above and below code in parallel
+            // Run the above CPU code and below UI code in parallel
             .buffer()
             // UI: Update the progress bar value
             .onEach { this.ui.progress++ }
-            // UI: Equivalent of handling InterruptedException
-            .onEach {
-                if (!currentCoroutineContext().isActive) {
-                    this.ui.status = "Cancelled!"
-                    println("Cancelled!!")
-                    currentCoroutineContext().ensureActive()
-                }
-            }
+            // Check for a cancelled job and throw CancellationException (Like InterruptedException)
+            .cancellable()
             // Run above operations in the GUI context
             .flowOn(Dispatchers.Main)
     }
@@ -80,6 +85,7 @@ class FileSearcher(
         .flowOn(Dispatchers.Main)
         .onStart {
             ui.status = "Counting files"
+            startTime = System.currentTimeMillis()
 
             // The number of comparisons is half size of the n * n comparison matrix, with the
             // leading diagonal removed, where n is the number of files after filtering.
@@ -95,15 +101,18 @@ class FileSearcher(
         }
         // Handle the cases of completion (Equivalent of handling InterruptedException)
         .onCompletion { e: Throwable? ->
+            val time = System.currentTimeMillis() - startTime
             ui.status = when (e) {
-                null -> "Done!"
+                null -> when {
+                    time > 60_000 -> "Finally done after ${time / 1000 / 60} minutes"
+                    time > 1_000 -> "Done in ${time / 1000}s"
+                    else -> "Done in only ${time}ms!"
+                }
                 is CancellationException -> "Stopped!"
-                else -> "Error! (${e.message})"
+                else -> "Error! ${e.message}"
             }
+            resultsWriter.closeContext()
         }
-
-    // Run and terminate the entire search flow
-    suspend fun run() = this.fileSearchFlow.collect()
 
     // Represents a file and it's contents as a string
     private data class ReadFile(val file: File, val string: String)

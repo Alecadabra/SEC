@@ -1,7 +1,9 @@
 package alec.sec.assignment1
 
 /**
- * Gets the similarity of two strings as a value between 0.0 (Not similar) and 1.0 (Identical).
+ * Gets the similarity of two strings [s1] and [s2] as a value between 0.0 (Not similar) and 1.0
+ * (Identical).
+ * @throws OutOfMemoryError If given strings that are too long for the Java heap.
  */
 fun calcSimilarity(s1: String, s2: String): Double {
     // Longest common subsequence dynamic programming algorithm
