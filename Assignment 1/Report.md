@@ -43,8 +43,8 @@ work and what they can do.
     // Run the above operations in the UI context (Platform.runLater())
     .flowOn(Dispatchers.Main)
     
-    // Separate the above and below code to run asynchronously, passing values through a shared 
-    // buffer
+    // Separate the above and below code to run asynchronously, passing values
+    // through a shared buffer
     .buffer()
     
     // Write the value to a file
@@ -56,7 +56,8 @@ work and what they can do.
     // Handle any thrown exceptions
     .catch { e -> println(e) }
     
-    // Run through the flow, you could also choose to do something with the values here
+    // Run through the flow, you could also choose to do something with the
+    // values here
     .collect() // (The terminating blocking operation)
 ```
 
