@@ -1,0 +1,90 @@
+/**
+ * Configure the Java part of the JNI application.
+ *
+ * There are some tricks to doing this that go beyond the Lecture 4 discussion of Gradle. It boils
+ * down to this:
+ *
+ * (1) We want to include the compiled C library inside the distributed .zip file (along with the 
+ *     Java application). To do this, we create a formal 'runtime' dependency on the C-project's
+ *     'linkRelease' task. 
+ *
+ * (2) We want the start-up scripts inside the distributed .zip file to set the 'library path' 
+ *     correctly, so that the distributed Java code can find the C library at runtime.
+ * 
+ * (3) We want the 'run' task to also set up the 'library path' correctly, so that 'gradlew run' 
+ *     works.
+ */
+
+plugins {
+    id 'java'
+    id 'application'
+}
+
+// We need Gradle to finish configuring the other sub-project first, because we need to
+// refer to two of its tasks below.
+evaluationDependsOn ':c_library'
+
+def libTasks = project(':c_library').tasks
+def debugLibTask = libTasks.matching{ it.name.startsWith('linkDebug') }.first()
+def releaseLibTask = libTasks.matching{ it.name.startsWith('linkRelease') }.first()
+
+dependencies {
+    // Make this subproject ('java_app') depend on the file produced by the linking task in the 
+    // other subproject.
+    runtimeOnly files(releaseLibTask.linkedFile)
+    
+    // This declaration is more convoluted than you might expect. We can't simply depend on the 
+    // other subproject as a whole, because that makes the Java plugin complain that it isn't 
+    // another Java project. There's no automated logic for tying a C library into a Java 
+    // application.
+    
+    // Instead, this dependency simply causes our C library file to be included as part of the Java 
+    // application's distributable .zip file. We then have to do some setting up, in 'run{}' and 
+    // 'startScripts{}', to ensure that Java will be able to load the library.
+}
+
+application {
+    mainClass.set 'org.example.ExampleJavaApp'
+}
+
+run {
+    // Make 'gradlew run' set the library path correctly. There is a Java "system property" for 
+    // this, which needs to be set to the *directory* containing the shared library.
+    
+    // We first depend on the 'linkDebug' task that creates the debug version of the library, to
+    // ensure that task runs before the 'run' task. Then we make a few more calls to extract the 
+    // actual directory, and set the library path.
+    
+    // Debug vs release? Gradle builds two versions of our C code with different compiler options,
+    // one intended for debugging (which is what we're theoretically doing when we execute 'run'),
+    // and one for release (which is what the final .zip file is for).
+    
+    dependsOn debugLibTask
+    systemProperty 'java.library.path', debugLibTask.linkedFile.get().asFile.parentFile
+    
+    // Allow standard input
+    standardInput = System.in
+}
+
+def modifyTemplate(gen, optText) {
+    gen.template = resources.text.fromString(gen.template.asString().replace(
+        'DEFAULT_JVM_OPTS=${defaultJvmOpts}',
+        'DEFAULT_JVM_OPTS=' + optText + '${defaultJvmOpts}'))
+}
+
+startScripts {
+    // Make the start-up scripts (both UNIX and Windows) set the library path correctly, so that 
+    // our application is properly distributable.
+    
+    // When our application is distributed, the native library will live inside the same 'lib/' 
+    // directory that contains the rest of our code. So the library path needs to be the 'lib/' 
+    // directory. However, we can't hardcode the location of this directory, because we can't know 
+    // in advance where the user has installed the application. Instead, we have to get the 
+    // start-up script (both the UNIX and Windows version of it) to figure it out.
+
+    // We have to tell the script generator to slip in an extra option to the Java runtime that 
+    // sets the library path.
+    
+    modifyTemplate(unixStartScriptGenerator, '\'"-Djava.library.path=\'\\$APP_HOME\'/lib" \'')
+    modifyTemplate(windowsStartScriptGenerator, '-Djava.library.path=%APP_HOME%\\\\lib ')
+}
