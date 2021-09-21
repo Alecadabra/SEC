@@ -1,0 +1,9 @@
+# VSCode stuff
+.settings
+c_library/.settings
+c_library/.project
+java_app/.settings
+java_app/.project
+build
+.project
+.classpath
