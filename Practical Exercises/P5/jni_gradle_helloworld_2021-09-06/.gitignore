@@ -4,6 +4,7 @@ c_library/.settings
 c_library/.project
 java_app/.settings
 java_app/.project
+java_app/bin
 build
 .project
 .classpath
