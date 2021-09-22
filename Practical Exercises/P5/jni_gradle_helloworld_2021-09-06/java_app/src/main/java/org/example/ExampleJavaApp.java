@@ -1,5 +1,8 @@
 package org.example;
 
+import java.util.Arrays;
+import java.util.List;
+
 public class ExampleJavaApp
 {
     static
@@ -9,8 +12,21 @@ public class ExampleJavaApp
 
     public static void main(String[] args)
     {
-        hello();
+        System.out.println("Input a number for read()");
+        double readVal = read(-1);
+        System.out.println("read() read in " + readVal);
+
+        printStr("This is using printStr()");
+
+        printList(Arrays.asList("This", "is", "using", "printStr()"));
     }
 
-    public static native void hello();
+    // Reads in and returns a double, or default value if failed
+    public native static double read(double defaultValue);
+
+    // Prints a given string to stdin with a newline
+    public native static void printStr(String text);
+
+    // Prints a given list separated by commas with a newline
+    public native static void printList(List<String> list);
 }
