@@ -7,23 +7,44 @@
 
 PARSER_BEGIN(MyParser)
 package edu.curtin.examplepackage;
-public class MyParser 
-{
-}
+
+public class MyParser
+{}
 PARSER_END(MyParser)
 
-SKIP: { " " | "\n" }
-
-TOKEN: { 
-    < HELLO: "hello" > |
-    < WORLD: "world" >
+// This doesn't work and I have NO IDEA why
+SKIP : {
+    " " | "\n" | "\t" | "\r" | "\r\n"
 }
 
-void helloWorld() :
-{
+<IN_STRING> TOKEN : {
+    < END_STR: "\"" > : DEFAULT
 }
+
+TOKEN: {
+    // Building blocks
+    < DIGIT: ["0"-"9"] > |
+    < NUMBER: <DIGIT> ( <DIGIT> )* > |
+    < TIME_24_HOUR: ( ["1"-"2"] )? <DIGIT> ":" <DIGIT> <DIGIT> > |
+    < START_STR: "\"" > : IN_STRING |
+
+    // Bus stuff
+    < BUS_DECLARATION: "bus(" <NUMBER> ")" "->" > |
+    < BUS_NAME: <START_STR> ( ~["\""] )* <END_STR> > |
+    < BUS_TIME: "at" <TIME_24_HOUR> ( <TIME_24_HOUR> )* > |
+    < BUS_STOPS: "via" "stops" <NUMBER> <NUMBER> ( <NUMBER> )* > |
+    < BUS_FREE: "free" >
+}
+
+void busFile() :
+{}
 {
-    <HELLO> <WORLD> 
+    (
+        <BUS_DECLARATION>
+        <BUS_NAME>
+        <BUS_TIME>
+        ( <BUS_FREE> )?
+    )*
     <EOF>
 }
 

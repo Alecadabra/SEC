@@ -1,17 +1,21 @@
 package edu.curtin.examplepackage;
 
-public class ExampleApp 
+import java.io.*;
+
+public class ExampleApp
 {
-    public static void main(String[] args) 
-    {
+    public static void main(String[] args) throws FileNotFoundException {
         System.out.println("Enter some text to be validated. Press Ctrl-D to finish.");
-        MyParser parser = new MyParser(System.in);
+        FileInputStream inputFile = new FileInputStream("input.txt");
+        InputStreamReader fileReader = new InputStreamReader(inputFile);
+        MyParser parser = new MyParser(fileReader);
         try
         {
-            parser.helloWorld();
+            parser.busFile();
+            fileReader.close();
             System.out.println("Input valid");
         }
-        catch(ParseException e)
+        catch(ParseException | IOException e)
         {
             System.out.println("Parsing error!");
             System.out.println(e.getMessage());
