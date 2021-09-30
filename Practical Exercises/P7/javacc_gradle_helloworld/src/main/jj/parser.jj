@@ -1,0 +1,29 @@
+// Hello world JavaCC grammar file.
+
+// Notes:
+// * To change the class name (MyParser), you can simply change it here, but the .java code will 
+//   need to be updated accordingly.
+// * To change the *package* name, you also need to edit build.gradle.
+
+PARSER_BEGIN(MyParser)
+package edu.curtin.examplepackage;
+public class MyParser 
+{
+}
+PARSER_END(MyParser)
+
+SKIP: { " " | "\n" }
+
+TOKEN: { 
+    < HELLO: "hello" > |
+    < WORLD: "world" >
+}
+
+void helloWorld() :
+{
+}
+{
+    <HELLO> <WORLD> 
+    <EOF>
+}
+
