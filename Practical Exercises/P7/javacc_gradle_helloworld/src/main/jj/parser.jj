@@ -1,38 +1,38 @@
-// Hello world JavaCC grammar file.
-
-// Notes:
-// * To change the class name (MyParser), you can simply change it here, but the .java code will 
-//   need to be updated accordingly.
-// * To change the *package* name, you also need to edit build.gradle.
+// JavaCC Grammar file to recognise bus declarations, like the one in input.txt
 
 PARSER_BEGIN(MyParser)
 package edu.curtin.examplepackage;
 
 public class MyParser
 {}
+
 PARSER_END(MyParser)
 
-// This doesn't work and I have NO IDEA why
 SKIP : {
-    " " | "\n" | "\t" | "\r" | "\r\n"
+    " " | "\n" | "\t" | "\r"
 }
 
+// Different state for when we're inside a string. We switch to IN_STRING when we see a double quote, and switch
+// back to DEFAULT when we see the next one.
 <IN_STRING> TOKEN : {
-    < END_STR: "\"" > : DEFAULT
+    < STR_END: "\"" > : DEFAULT
 }
 
 TOKEN: {
+    // Required whitespace
+    < BREAK: " " | "\n" | "\t" | "\r\n" > |
+
     // Building blocks
     < DIGIT: ["0"-"9"] > |
     < NUMBER: <DIGIT> ( <DIGIT> )* > |
-    < TIME_24_HOUR: ( ["1"-"2"] )? <DIGIT> ":" <DIGIT> <DIGIT> > |
-    < START_STR: "\"" > : IN_STRING |
+    < TIME_24_HOUR: ( "1" | "2" )? <DIGIT> ":" <DIGIT> <DIGIT> > |
+    < STR_START: "\"" > : IN_STRING |
 
     // Bus stuff
-    < BUS_DECLARATION: "bus(" <NUMBER> ")" "->" > |
-    < BUS_NAME: <START_STR> ( ~["\""] )* <END_STR> > |
-    < BUS_TIME: "at" <TIME_24_HOUR> ( <TIME_24_HOUR> )* > |
-    < BUS_STOPS: "via" "stops" <NUMBER> <NUMBER> ( <NUMBER> )* > |
+    < BUS_DECLARATION: "bus(" ( <BREAK> )* <NUMBER> ( <BREAK> )* ")" ( <BREAK> )* "->" > |
+    < BUS_NAME: <STR_START> ( ~["\""] )* <STR_END> > |
+    < BUS_TIME: "at" ( <BREAK> )+ <TIME_24_HOUR> ( ( <BREAK> )+ <TIME_24_HOUR> )* > |
+    < BUS_STOPS: "via" ( <BREAK> )+ "stops" ( <BREAK> )+ <NUMBER> ( ( <BREAK> )+ <NUMBER> )+ > |
     < BUS_FREE: "free" >
 }
 
@@ -43,6 +43,7 @@ void busFile() :
         <BUS_DECLARATION>
         <BUS_NAME>
         <BUS_TIME>
+        <BUS_STOPS>
         ( <BUS_FREE> )?
     )*
     <EOF>
