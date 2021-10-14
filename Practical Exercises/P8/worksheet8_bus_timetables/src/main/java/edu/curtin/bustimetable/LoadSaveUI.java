@@ -12,6 +12,7 @@ import javafx.stage.Stage;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ResourceBundle;
 
 
 /** 
@@ -28,12 +29,14 @@ public class LoadSaveUI
     private FileIO fileIO;
     private FileChooser fileDialog = new FileChooser();
     private Dialog<String> encodingDialog;
+    private ResourceBundle strings;
     
-    public LoadSaveUI(Stage stage, ObservableList<TimetableEntry> entries, FileIO fileIO)
+    public LoadSaveUI(Stage stage, ObservableList<TimetableEntry> entries,FileIO fileIO, ResourceBundle strings)
     {
         this.stage = stage;
         this.entries = entries;
         this.fileIO = fileIO;
+        this.strings = strings;
     }
     
     /**
@@ -47,14 +50,14 @@ public class LoadSaveUI
             var encodingComboBox = new ComboBox<String>();
             var content = new FlowPane();
             encodingDialog = new Dialog<>();
-            encodingDialog.setTitle("Select Timetable File Encoding");
+            encodingDialog.setTitle(strings.getString("load_save_select_encoding"));
             encodingDialog.getDialogPane().setContent(content);
             encodingDialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);        
             encodingDialog.setResultConverter(
                 btn -> (btn == ButtonType.OK) ? encodingComboBox.getValue() : null);
             
             content.setHgap(SPACING);
-            content.getChildren().setAll(new Label("Encoding"), encodingComboBox);
+            content.getChildren().setAll(new Label(strings.getString("load_save_encoding")), encodingComboBox);
             
             encodingComboBox.getItems().setAll("UTF-8", "UTF-16", "UTF-32");
             encodingComboBox.setValue("UTF-8");
@@ -68,7 +71,7 @@ public class LoadSaveUI
      */
     public void load()
     {
-        fileDialog.setTitle("Load Timetable");
+        fileDialog.setTitle(strings.getString("load_save_load_timetable"));
     
         File f = fileDialog.showOpenDialog(stage);
         if(f != null)
@@ -86,7 +89,7 @@ public class LoadSaveUI
                 {
                     new Alert(
                         Alert.AlertType.ERROR, 
-                        String.format("Error loading timetable: %s - %s", e.getClass().getName(), e.getMessage()),
+                        String.format(strings.getString("load_save_error_loading"), e.getClass().getName(), e.getMessage()),
                         ButtonType.CLOSE
                     ).showAndWait();
                 }                
@@ -100,7 +103,7 @@ public class LoadSaveUI
      */
     public void save()
     {
-        fileDialog.setTitle("Save Timetable");
+        fileDialog.setTitle(strings.getString("load_save_save_timetable"));
         File f = fileDialog.showSaveDialog(stage);
         if(f != null)
         {
@@ -117,7 +120,7 @@ public class LoadSaveUI
                 {
                     new Alert(
                         Alert.AlertType.ERROR, 
-                        String.format("Error saving timetable: %s - %s", e.getClass().getName(), e.getMessage()),
+                        String.format(strings.getString("load_save_error_saving"), e.getClass().getName(), e.getMessage()),
                         ButtonType.CLOSE
                     ).showAndWait();
                 }

@@ -1,5 +1,8 @@
 package edu.curtin.bustimetable;
 
+import java.util.Locale;
+import java.util.ResourceBundle;
+
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.stage.Stage;
@@ -20,15 +23,23 @@ public class BusTimetableApp extends Application
     public void start(Stage stage)
     {
         var localeString = getParameters().getNamed().get("locale");
-        if(localeString != null)
+        Locale locale;
+        if(localeString == null)
         {
-            // FIXME: A locale was specified on the command-line. What are you going to do about it? ;-)
+            locale = Locale.getDefault();
         }
+        else
+        {
+            locale = Locale.forLanguageTag(localeString);
+        }
+        System.out.println("Localestring: " + localeString + ", locale: " + locale);
+
+        ResourceBundle strings = ResourceBundle.getBundle("strings", locale);
     
         var entries = FXCollections.<TimetableEntry>observableArrayList();
-        FileIO fileIO = new FileIO();
-        LoadSaveUI loadSaveUI = new LoadSaveUI(stage, entries, fileIO);
-        AddUI addUI = new AddUI(entries);
-        new MainUI(stage, entries, loadSaveUI, addUI).display();
+        FileIO fileIO = new FileIO(strings);
+        LoadSaveUI loadSaveUI = new LoadSaveUI(stage, entries, fileIO, strings);
+        AddUI addUI = new AddUI(entries, strings);
+        new MainUI(stage, entries, loadSaveUI, addUI, strings).display();
     }
 }

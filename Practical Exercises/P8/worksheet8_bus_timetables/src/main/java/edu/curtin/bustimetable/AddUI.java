@@ -11,6 +11,7 @@ import java.time.Duration;
 import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
 import java.util.List;
+import java.util.ResourceBundle;
 
 
 /**
@@ -31,10 +32,12 @@ public class AddUI
     private TextField departureTimeField = new TextField();
     private TextField durationField = new TextField();
     private List<TextField> fields = List.of(routeIdField, fromField, destinationField, departureTimeField, durationField);
+    private ResourceBundle strings;
             
-    public AddUI(ObservableList<TimetableEntry> entries)
+    public AddUI(ObservableList<TimetableEntry> entries, ResourceBundle strings)
     {
         this.entries = entries;
+        this.strings = strings;
     }
         
     /**
@@ -46,17 +49,17 @@ public class AddUI
         {
             var content = new GridPane();
             dialog = new Dialog<>();
-            dialog.setTitle("Add New Timetable Entry");
+            dialog.setTitle(strings.getString("add_ui_new_entry"));
             dialog.getDialogPane().setContent(content);
             dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
             dialog.setResultConverter(this::buildEntry);
             content.setHgap(SPACING);
             content.setVgap(SPACING);
-            content.add(new Label("Route ID"),           0, 0);
-            content.add(new Label("From"),               0, 1);
-            content.add(new Label("Destination"),        0, 2);
-            content.add(new Label("Departure Time"),     0, 3);
-            content.add(new Label("Duration (minutes)"), 0, 4);
+            content.add(new Label(strings.getString("ui_route_id")),           0, 0);
+            content.add(new Label(strings.getString("ui_from")),               0, 1);
+            content.add(new Label(strings.getString("ui_destination")),        0, 2);
+            content.add(new Label(strings.getString("ui_departure_time")),     0, 3);
+            content.add(new Label(strings.getString("ui_duration_mins")), 0, 4);
             content.add(routeIdField,       1, 0);
             content.add(fromField,          1, 1);
             content.add(destinationField,   1, 2);

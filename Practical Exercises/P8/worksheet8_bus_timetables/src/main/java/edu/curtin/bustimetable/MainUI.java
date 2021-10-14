@@ -12,11 +12,12 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.ToolBar;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.Scene;
-import javafx.stage.FileChooser;
+// import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.ResourceBundle;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
@@ -30,33 +31,35 @@ import java.util.concurrent.TimeUnit;
  */
 public class MainUI
 {
-    private static final int SPACING = 8;
+    // private static final int SPACING = 8;
     
     private Stage stage;
     private ObservableList<TimetableEntry> entries;
     private LoadSaveUI loadSaveUI;
     private AddUI addUI;
     private TextField statusBar = new TextField();
+    private ResourceBundle strings;
     
-    public MainUI(Stage stage, ObservableList<TimetableEntry> entries, LoadSaveUI loadSaveUI, AddUI addUI)
+    public MainUI(Stage stage, ObservableList<TimetableEntry> entries, LoadSaveUI loadSaveUI, AddUI addUI, ResourceBundle strings)
     {
         this.stage = stage;
         this.entries = entries;
         this.loadSaveUI = loadSaveUI;
         this.addUI = addUI;
+        this.strings = strings;
     }
     
     public void display()
     {
-        stage.setTitle("Bus Timetable");
+        stage.setTitle(strings.getString("main_ui_bus_timetable"));
         stage.setMinWidth(1000);
                 
         // Create toolbar and button event handlers
-        var loadBtn = new Button("Load...");
-        var saveBtn = new Button("Save...");
-        var addBtn = new Button("Add Entry...");
+        var loadBtn = new Button(strings.getString("main_ui_load_button"));
+        var saveBtn = new Button(strings.getString("main_ui_save_button"));
+        var addBtn = new Button(strings.getString("main_ui_add_entry_button"));
         var filterText = new TextField();        
-        filterText.setPromptText("Search");        
+        filterText.setPromptText(strings.getString("main_ui_search"));        
         ToolBar toolBar = new ToolBar(
             loadBtn, saveBtn, addBtn, new Separator(), filterText);            
         loadBtn.setOnAction(event -> loadSaveUI.load());
@@ -74,12 +77,12 @@ public class MainUI
         );
         
         // Table columns
-        TableColumn<TimetableEntry,String> routeIdCol       = new TableColumn<>("Route");
-        TableColumn<TimetableEntry,String> fromCol          = new TableColumn<>("From");
-        TableColumn<TimetableEntry,String> destinationCol   = new TableColumn<>("Destination");
-        TableColumn<TimetableEntry,String> departureTimeCol = new TableColumn<>("Departure Time");
-        TableColumn<TimetableEntry,String> arrivalTimeCol   = new TableColumn<>("Arrival Time");
-        TableColumn<TimetableEntry,String> durationCol      = new TableColumn<>("Duration (minutes)");
+        TableColumn<TimetableEntry,String> routeIdCol       = new TableColumn<>(strings.getString("ui_route"));
+        TableColumn<TimetableEntry,String> fromCol          = new TableColumn<>(strings.getString("ui_from"));
+        TableColumn<TimetableEntry,String> destinationCol   = new TableColumn<>(strings.getString("ui_destination"));
+        TableColumn<TimetableEntry,String> departureTimeCol = new TableColumn<>(strings.getString("ui_departure_time"));
+        TableColumn<TimetableEntry,String> arrivalTimeCol   = new TableColumn<>(strings.getString("ui_arrival_time"));
+        TableColumn<TimetableEntry,String> durationCol      = new TableColumn<>(strings.getString("ui_duration_mins"));
         
         entryTable.getColumns().setAll(List.of(routeIdCol, fromCol, destinationCol, departureTimeCol, arrivalTimeCol, durationCol));
         

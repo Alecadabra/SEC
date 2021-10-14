@@ -11,6 +11,13 @@ import java.util.*;
  */
 public class FileIO
 {
+    private ResourceBundle strings;
+
+    public FileIO(ResourceBundle strings)
+    {
+        this.strings = strings;
+    }
+
     /**
      * Loads a bus timetable from a given CSV file.
      */
@@ -37,13 +44,23 @@ public class FileIO
                     }
                     catch(DateTimeParseException e)
                     {
-                        throw new TimetableFormatException(String.format(
-                            "Invalid departure time: '%s'", fields[3]), e);
+                        throw new TimetableFormatException(
+                            String.format(
+                                strings.getString("io_invalid_departure_time"),
+                                fields[3]
+                            ),
+                            e
+                        );
                     }
                     catch(NumberFormatException e)
                     {
-                        throw new TimetableFormatException(String.format(
-                            "Invalid duration: '%s'", fields[4]), e);
+                        throw new TimetableFormatException(
+                            String.format(
+                                strings.getString("io_invalid_duration"),
+                                fields[4]
+                            ),
+                            e
+                        );
                     }                    
                 }
             }
