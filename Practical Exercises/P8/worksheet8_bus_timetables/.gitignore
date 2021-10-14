@@ -1,0 +1,6 @@
+# Vscode Java stuff
+bin
+build
+.settings
+.classpath
+.project
