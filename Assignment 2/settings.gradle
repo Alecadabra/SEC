@@ -1,1 +1,3 @@
+include 'api', 'app'
+
 rootProject.name = 'Assignment-2'

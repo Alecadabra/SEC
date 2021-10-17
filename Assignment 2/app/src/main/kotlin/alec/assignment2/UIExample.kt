@@ -3,7 +3,6 @@ package alec.assignment2
 import javafx.application.Application
 import javafx.beans.value.ObservableValue
 import javafx.collections.FXCollections
-import javafx.event.ActionEvent
 import javafx.event.EventHandler
 import javafx.scene.Node
 import javafx.scene.Scene
@@ -12,12 +11,13 @@ import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyEvent
 import javafx.scene.layout.BorderPane
 import javafx.stage.Stage
+import java.security.Key
 import java.util.function.Consumer
 
 class UIExample : Application() {
     private val textArea = TextArea()
     override fun start(stage: Stage) {
-        stage.title = "SillyWindowTitlePleaseChange"
+        stage.title = "Text Editor"
         stage.minWidth = 800.0
 
         // Create toolbar
@@ -57,6 +57,7 @@ class UIExample : Application() {
         textArea.text =
             "This is some\ndemonstration text\nTry pressing F1, ctrl+b, ctrl+shift+b or alt+b."
         textArea.selectRange(8, 16) // Select a range of text (and move the caret to the end)
+        textArea.anchor
 
         // Example global keypress handler.
         scene.onKeyPressed = EventHandler { keyEvent: KeyEvent ->
@@ -67,11 +68,14 @@ class UIExample : Application() {
             val alt = keyEvent.isAltDown
             if (key == KeyCode.F1) {
                 Alert(Alert.AlertType.INFORMATION, "F1", ButtonType.OK).showAndWait()
-            } else if (ctrl && shift && key == KeyCode.B) {
+            }
+            else if (ctrl && shift && key == KeyCode.B) {
                 Alert(Alert.AlertType.INFORMATION, "ctrl+shift+b", ButtonType.OK).showAndWait()
-            } else if (ctrl && key == KeyCode.B) {
+            }
+            else if (ctrl && key == KeyCode.B) {
                 Alert(Alert.AlertType.INFORMATION, "ctrl+b", ButtonType.OK).showAndWait()
-            } else if (alt && key == KeyCode.B) {
+            }
+            else if (alt && key == KeyCode.B) {
                 Alert(Alert.AlertType.INFORMATION, "alt+b", ButtonType.OK).showAndWait()
             }
         }
@@ -101,15 +105,19 @@ class UIExample : Application() {
         val addBtn = Button("Add...")
         val removeBtn = Button("Remove...")
         val toolBar = ToolBar(addBtn, removeBtn)
-        addBtn.onAction = EventHandler { event: ActionEvent? ->
-            Alert(Alert.AlertType.INFORMATION,
+        addBtn.onAction = EventHandler {
+            Alert(
+                Alert.AlertType.INFORMATION,
                 "Add...",
-                ButtonType.OK).showAndWait()
+                ButtonType.OK
+            ).showAndWait()
         }
-        removeBtn.onAction = EventHandler { event: ActionEvent? ->
-            Alert(Alert.AlertType.INFORMATION,
+        removeBtn.onAction = EventHandler {
+            Alert(
+                Alert.AlertType.INFORMATION,
                 "Remove...",
-                ButtonType.OK).showAndWait()
+                ButtonType.OK
+            ).showAndWait()
         }
 
         // FYI: 'ObservableList' inherits from the ordinary List interface, but also works as a subject for any 'observer-pattern' purposes; e.g., to allow an on-screen ListView to display any changes made to the list as they are made.
