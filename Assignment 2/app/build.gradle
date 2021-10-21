@@ -24,7 +24,7 @@ javafx {
 }
 
 application {
-    mainClassName = 'alec.assignment2.UIExample'
+    mainClassName = 'alec.assignment2.ui.UserInterface'
 }
 
 dependencies {

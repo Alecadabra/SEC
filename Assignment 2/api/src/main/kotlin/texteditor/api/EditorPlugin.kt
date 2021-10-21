@@ -1,3 +1,5 @@
+package texteditor.api
+
 import java.util.*
 
 interface EditorPlugin {

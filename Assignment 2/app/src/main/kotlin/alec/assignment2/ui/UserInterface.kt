@@ -1,4 +1,4 @@
-package alec.assignment2
+package alec.assignment2.ui
 
 import javafx.application.Application
 import javafx.beans.value.ObservableValue
@@ -11,10 +11,9 @@ import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyEvent
 import javafx.scene.layout.BorderPane
 import javafx.stage.Stage
-import java.security.Key
 import java.util.function.Consumer
 
-class UIExample : Application() {
+class UserInterface : Application() {
     private val textArea = TextArea()
     override fun start(stage: Stage) {
         stage.title = "Text Editor"
@@ -32,10 +31,12 @@ class UIExample : Application() {
         textArea.style = "-fx-font-family: 'monospace'" // Set the font
 
         // Add the main parts of the UI to the window.
-        val mainBox = BorderPane()
-        mainBox.top = toolBar
-        mainBox.center = textArea
-        val scene = Scene(mainBox)
+        val scene = Scene(
+            BorderPane().also {
+                it.top = toolBar
+                it.center = textArea
+            }
+        )
 
         // Button event handlers.
         btn1.onAction = EventHandler { showDialog1() }
@@ -44,7 +45,7 @@ class UIExample : Application() {
 
         // TextArea event handlers & caret positioning.
         textArea.textProperty()
-            .addListener { _: ObservableValue<out String>?, _: String?, newValue: String ->
+            .addListener { _, _, newValue: String ->
                 println(
                     """
                     caret position is ${textArea.caretPosition}; text is

@@ -4,7 +4,6 @@ import java.util.*
 
 sealed class Translation(val locale: Locale) {
     abstract val appName: String
-    abstract val minutes: (Int) -> String
 
     companion object {
         operator fun get(locale: Locale): Translation = values.singleOrNull {
@@ -18,6 +17,5 @@ sealed class Translation(val locale: Locale) {
 
     object EnglishAustralia : Translation(Locale.forLanguageTag("en-AU")) {
         override val appName: String = "Text Editor"
-        override val minutes: (Int) -> String = { "$it" }
     }
 }
