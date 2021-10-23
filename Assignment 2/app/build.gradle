@@ -29,4 +29,5 @@ application {
 
 dependencies {
     implementation project(':api')
+    implementation 'org.python:jython-slim:2.7.2'
 }

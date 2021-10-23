@@ -15,6 +15,10 @@ import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyEvent
 import javafx.scene.layout.BorderPane
 import javafx.stage.Stage
+import org.python.core.PyClass
+import org.python.core.PyObject
+import org.python.core.PyString
+import org.python.util.PythonInterpreter
 import texteditor.api.EditorPlugin
 import java.util.*
 
@@ -83,7 +87,14 @@ class UserInterface : Application() {
         // Load plugins
 
         // Button event handlers.
-        btn1.onAction = EventHandler { showDialog1() }
+        btn1.onAction = EventHandler {
+            PythonInterpreter().use {
+                val cls = it.eval("""
+                    |"hello world"
+                """.trimMargin("|")) as PyObject
+                println(cls.toString())
+            }
+        }
         btn2.onAction = EventHandler { showDialog2() }
         btn3.onAction = EventHandler { toolBar.items.add(Button("ButtonN")) }
 
