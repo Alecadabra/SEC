@@ -7,5 +7,5 @@ interface Listeners {
 
     fun addTextChangedListener(callback: () -> Unit)
 
-    fun textDialog(prompt: String, callback: (String?) -> Unit)
+    fun textDialog(plugin: EditorPlugin, prompt: String, callback: (String?) -> Unit)
 }
