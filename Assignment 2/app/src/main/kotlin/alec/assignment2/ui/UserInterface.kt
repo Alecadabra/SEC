@@ -2,8 +2,7 @@ package alec.assignment2.ui
 
 import alec.assignment2.i18n.LocaleManager
 import alec.assignment2.i18n.Translation
-import alec.assignment2.plugin.KeyStroke
-import alec.assignment2.plugin.PluginController
+import alec.assignment2.plugin.*
 import javafx.application.Application
 import javafx.application.Platform
 import javafx.collections.FXCollections
@@ -14,12 +13,11 @@ import javafx.scene.control.*
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyEvent
 import javafx.scene.layout.BorderPane
+import javafx.stage.FileChooser
 import javafx.stage.Stage
-import org.python.core.PyClass
-import org.python.core.PyObject
-import org.python.core.PyString
-import org.python.util.PythonInterpreter
+import javafx.stage.Window
 import texteditor.api.EditorPlugin
+import java.io.File
 import java.util.*
 
 class UserInterface : Application() {
@@ -42,16 +40,26 @@ class UserInterface : Application() {
     private val translation: Translation
         get() = _translation ?: error("Translations accessed before application initialised")
     private var _translation: Translation? = null
+    // ButtonTypes with l10n
+    private val okButtonType: ButtonType get() = ButtonType(translation.ok, ButtonBar.ButtonData.OK_DONE)
+    private val cancelButtonType: ButtonType get() = ButtonType(translation.cancel, ButtonBar.ButtonData.CANCEL_CLOSE)
 
     // UI Elements
+    private val scene by lazy {
+        Scene(
+            BorderPane().also {
+                it.top = toolBar
+                it.center = textArea
+            }
+        )
+    }
     private val textArea = TextArea()
     private val toolBar = ToolBar()
 
-    // Plugins & Listeners
+    // Plugin & script management
+    private val pluginLoader: PluginLoader get() = PluginLoader(translation)
     private val pluginController = PluginController(this)
-    private val plugins = listOf<EditorPlugin>()
     private val keyStrokeListeners = mutableMapOf<KeyStroke, () -> Unit>()
-    private val textChangedListeners = mutableSetOf<() -> Unit>()
 
     // Access to text area
     val textController: TextInputControl
@@ -65,54 +73,16 @@ class UserInterface : Application() {
         stage.title = "Text Editor"
         stage.minWidth = 800.0
 
-        // Setup toolbar
-        val btn1 = Button("Button1")
-        val btn2 = Button("Button2")
-        val btn3 = Button("Button3")
-        this.toolBar.items.addAll(btn1, btn2, btn3)
-
         // Subtle user experience tweaks
         toolBar.isFocusTraversable = false
         toolBar.items.forEach { btn: Node -> btn.isFocusTraversable = false }
         textArea.style = "-fx-font-family: 'monospace'" // Set the font
 
-        // Add the main parts of the UI to the window.
-        val scene = Scene(
-            BorderPane().also {
-                it.top = toolBar
-                it.center = textArea
-            }
-        )
-
         // Load plugins
-
-        // Button event handlers.
-        btn1.onAction = EventHandler {
-            PythonInterpreter().use {
-                val cls = it.eval("""
-                    |"hello world"
-                """.trimMargin("|")) as PyObject
-                println(cls.toString())
-            }
+        val plugins = loadPluginsDialog(stage)
+        plugins.forEach { plugin ->
+            this.pluginController.startPlugin(plugin)
         }
-        btn2.onAction = EventHandler { showDialog2() }
-        btn3.onAction = EventHandler { toolBar.items.add(Button("ButtonN")) }
-
-        // TextArea event handlers & caret positioning.
-        textArea.textProperty()
-            .addListener { _, _, newValue: String ->
-                println(
-                    """
-                    caret position is ${textArea.caretPosition}; text is
-                    ---
-                    $newValue
-                    ---
-                    
-                    """.trimIndent())
-            }
-        textArea.text =
-            "This is some\ndemonstration text\nTry pressing F1, ctrl+b, ctrl+shift+b or alt+b."
-        textArea.selectRange(8, 16) // Select a range of text (and move the caret to the end)
 
         // Example global keypress handler.
         scene.onKeyPressed = EventHandler { keyEvent: KeyEvent ->
@@ -139,61 +109,84 @@ class UserInterface : Application() {
         stage.show()
     }
 
-    private fun showDialog1() {
-        // TextInputDialog is a subclass of Dialog that just presents a single text field.
-        val dialog = TextInputDialog()
-        dialog.title = "Text entry dialog box"
-        dialog.headerText = "Enter text"
+    private fun loadPluginsDialog(window: Window): List<EditorPlugin> {
+        val dialog = Dialog<List<EditorPlugin>>().also { dialog ->
+            val pluginList = FXCollections.observableArrayList<EditorPlugin>()
 
-        // 'showAndWait()' opens the dialog and waits for the user to press the 'OK' or 'Cancel' button. It returns an Optional, which is a whole other discussion, but we can call 'orElse(null)' on that to get the actual string entered if the user pressed 'OK', or null if the user pressed 'Cancel'.
-        val inputStr = dialog.showAndWait().orElse(null)
-        if (inputStr != null) {
-            // Alert is another specialised dialog just for displaying a quick message.
-            Alert(
-                Alert.AlertType.INFORMATION,
-                "You entered '$inputStr'",
-                ButtonType.OK).showAndWait()
+            dialog.title = translation.appName
+            dialog.headerText = translation.loadPluginsAndScripts
+            dialog.dialogPane.content = BorderPane().also { box ->
+                box.top = ToolBar(
+                    Button(translation.loadScript).also {
+                        it.setOnAction {
+                            FileChooser().also { fileChooser ->
+                                fileChooser.title = translation.scriptLocationInput
+                                fileChooser.extensionFilters.addAll(
+                                    FileChooser.ExtensionFilter(translation.filesPython, "*.py"),
+                                    FileChooser.ExtensionFilter(translation.filesAll, "*.*")
+                                )
+                                val file: File? = fileChooser.showOpenDialog(window)
+                                if (file != null) {
+                                    try {
+                                        pluginList.add(this.pluginLoader.loadScript(file.absolutePath))
+                                    } catch (e: PluginLoaderException) {
+                                        Alert(
+                                            Alert.AlertType.ERROR,
+                                            e.message,
+                                            this.okButtonType
+                                        ).showAndWait()
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    Button(translation.loadPlugin).also {
+                        it.setOnAction {
+                            TextInputDialog().also { textDialog ->
+                                textDialog.title = translation.loadPlugin
+                                textDialog.headerText = translation.pluginNameInput
+                                textDialog.resultProperty().addListener { _, _, value ->
+                                    try {
+                                        pluginList.add(this.pluginLoader.loadPlugin(value))
+                                    } catch (e: PluginLoaderException) {
+                                        Alert(
+                                            Alert.AlertType.ERROR,
+                                            e.message,
+                                            this.okButtonType
+                                        ).showAndWait()
+                                    }
+                                }
+                            }.showAndWait()
+                        }
+                    }
+                )
+                box.center = ListView(pluginList).also { listView ->
+                    // Display EditorPlugin.name rather than EditorPlugin.toString
+                    listView.setCellFactory {
+                        object : ListCell<EditorPlugin>() {
+                            override fun updateItem(item: EditorPlugin?, empty: Boolean) {
+                                super.updateItem(item, empty)
+                                text = (if (empty) null else item?.name)
+                            }
+                        }
+                    }
+                }
+            }
+            dialog.dialogPane.buttonTypes.add(this.okButtonType)
+            dialog.setResultConverter { buttonType ->
+                when (buttonType.buttonData) {
+                    ButtonBar.ButtonData.OK_DONE -> pluginList
+                    else -> null
+                }
+            }
         }
-    }
-
-    private fun showDialog2() {
-        val addBtn = Button("Add...")
-        val removeBtn = Button("Remove...")
-        val toolBar = ToolBar(addBtn, removeBtn)
-        addBtn.onAction = EventHandler {
-            Alert(
-                Alert.AlertType.INFORMATION,
-                "Add...",
-                ButtonType.OK
-            ).showAndWait()
-        }
-        removeBtn.onAction = EventHandler {
-            Alert(
-                Alert.AlertType.INFORMATION,
-                "Remove...",
-                ButtonType.OK
-            ).showAndWait()
-        }
-
-        // FYI: 'ObservableList' inherits from the ordinary List interface, but also works as a subject for any 'observer-pattern' purposes; e.g., to allow an on-screen ListView to display any changes made to the list as they are made.
-        val list = FXCollections.observableArrayList<String>()
-        val listView = ListView(list)
-        list.add("Item 1")
-        list.add("Item 2")
-        list.add("Item 3")
-        val box = BorderPane()
-        box.top = toolBar
-        box.center = listView
-        val dialog: Dialog<*> = Dialog<Any?>()
-        dialog.title = "List of things"
-        dialog.headerText = "Here's a list of things"
-        dialog.dialogPane.content = box
-        dialog.dialogPane.buttonTypes.add(ButtonType.OK)
-        dialog.showAndWait()
+        // Return new plugins list if OK is pressed
+        return dialog.showAndWait().orElse(listOf())
     }
 
     fun addButton(text: String, callback: () -> Unit) = Platform.runLater {
-        this.toolBar.items.add(
+        this.toolBar.items.addAll(
+            Separator(),
             Button(text).also {
                 it.onAction = EventHandler { callback() }
             }
@@ -202,10 +195,13 @@ class UserInterface : Application() {
 
     fun addKeyStrokeListener(keyStroke: KeyStroke, callback: () -> Unit) = Platform.runLater {
         this.keyStrokeListeners[keyStroke] = callback
+        this.scene.setOnKeyPressed { keyEvent ->
+            this.keyStrokeListeners[keyEvent.asKeyStroke]?.invoke()
+        }
     }
 
     fun addTextChangedListener(callback: () -> Unit) = Platform.runLater {
-        this.textChangedListeners.add(callback)
+        this.textArea.textProperty().addListener { _ -> callback() }
     }
 
     fun showTextDialogBox(
