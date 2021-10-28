@@ -41,23 +41,21 @@ class UserInterface : Application() {
         get() = _translation ?: error("Translations accessed before application initialised")
     private var _translation: Translation? = null
     // ButtonTypes with l10n
-    private val okButtonType: ButtonType get() = ButtonType(translation.ok, ButtonBar.ButtonData.OK_DONE)
-    private val cancelButtonType: ButtonType get() = ButtonType(translation.cancel, ButtonBar.ButtonData.CANCEL_CLOSE)
+    private val okButtonType: ButtonType get() = ButtonType(
+        translation.ok,
+        ButtonBar.ButtonData.OK_DONE
+    )
+    private val cancelButtonType: ButtonType get() = ButtonType(
+        translation.cancel,
+        ButtonBar.ButtonData.CANCEL_CLOSE
+    )
 
     // UI Elements
-    private val scene by lazy {
-        Scene(
-            BorderPane().also {
-                it.top = toolBar
-                it.center = textArea
-            }
-        )
-    }
     private val textArea = TextArea()
     private val toolBar = ToolBar()
 
     // Plugin & script management
-    private val pluginLoader: PluginLoader get() = PluginLoader(translation)
+    private val pluginLoader: PluginLoader by lazy { PluginLoader(translation) }
     private val pluginController = PluginController(this)
     private val keyStrokeListeners = mutableMapOf<KeyStroke, () -> Unit>()
 
@@ -70,45 +68,40 @@ class UserInterface : Application() {
         this._locale = LocaleManager.parseLocale(parameters.named)
         this._translation = Translation[locale]
 
-        stage.title = "Text Editor"
-        stage.minWidth = 800.0
-
         // Subtle user experience tweaks
         toolBar.isFocusTraversable = false
         toolBar.items.forEach { btn: Node -> btn.isFocusTraversable = false }
         textArea.style = "-fx-font-family: 'monospace'" // Set the font
 
         // Load plugins
-        val plugins = loadPluginsDialog(stage)
-        plugins.forEach { plugin ->
+        loadPluginsDialog(stage).forEach { plugin ->
             this.pluginController.startPlugin(plugin)
         }
 
-        // Example global keypress handler.
-        scene.onKeyPressed = EventHandler { keyEvent: KeyEvent ->
-            // See the documentation for the KeyCode class to see all the available keys.
-            val key = keyEvent.code
-            val ctrl = keyEvent.isControlDown
-            val shift = keyEvent.isShiftDown
-            val alt = keyEvent.isAltDown
-            if (key == KeyCode.F1) {
-                Alert(Alert.AlertType.INFORMATION, "F1", ButtonType.OK).showAndWait()
+        stage.also { stg ->
+            stg.title = "Text Editor"
+            stg.minWidth = 800.0
+
+            stg.scene = Scene(
+                BorderPane().also { pane ->
+                    pane.top = toolBar
+                    pane.center = textArea
+                }
+            ).also { scene ->
+                scene.setOnKeyPressed { keyEvent ->
+                    this.keyStrokeListeners[keyEvent.asKeyStroke]?.invoke()
+                }
             }
-            else if (ctrl && shift && key == KeyCode.B) {
-                Alert(Alert.AlertType.INFORMATION, "ctrl+shift+b", ButtonType.OK).showAndWait()
-            }
-            else if (ctrl && key == KeyCode.B) {
-                Alert(Alert.AlertType.INFORMATION, "ctrl+b", ButtonType.OK).showAndWait()
-            }
-            else if (alt && key == KeyCode.B) {
-                Alert(Alert.AlertType.INFORMATION, "alt+b", ButtonType.OK).showAndWait()
-            }
+
+            stg.sizeToScene()
+            stg.show()
         }
-        stage.scene = scene
-        stage.sizeToScene()
-        stage.show()
     }
 
+    /**
+     * Creates, shows, and returns the answer to a dialog allowing the loading of plugins
+     * and scripts.
+     */
     private fun loadPluginsDialog(window: Window): List<EditorPlugin> {
         val dialog = Dialog<List<EditorPlugin>>().also { dialog ->
             val pluginList = FXCollections.observableArrayList<EditorPlugin>()
@@ -117,13 +110,21 @@ class UserInterface : Application() {
             dialog.headerText = translation.loadPluginsAndScripts
             dialog.dialogPane.content = BorderPane().also { box ->
                 box.top = ToolBar(
+                    // Load Script Button
                     Button(translation.loadScript).also {
                         it.setOnAction {
+                            // Select a python script file
                             FileChooser().also { fileChooser ->
                                 fileChooser.title = translation.scriptLocationInput
                                 fileChooser.extensionFilters.addAll(
-                                    FileChooser.ExtensionFilter(translation.filesPython, "*.py"),
-                                    FileChooser.ExtensionFilter(translation.filesAll, "*.*")
+                                    FileChooser.ExtensionFilter(
+                                        translation.filesPython,
+                                        "*.py"
+                                    ),
+                                    FileChooser.ExtensionFilter(
+                                        translation.filesAll,
+                                        "*.*"
+                                    )
                                 )
                                 val file: File? = fileChooser.showOpenDialog(window)
                                 if (file != null) {
@@ -140,14 +141,16 @@ class UserInterface : Application() {
                             }
                         }
                     },
+                    // Load plugin button
                     Button(translation.loadPlugin).also {
                         it.setOnAction {
+                            // Get the fully qualified class name of the EditorPlugin implementation
                             TextInputDialog().also { textDialog ->
                                 textDialog.title = translation.loadPlugin
                                 textDialog.headerText = translation.pluginNameInput
-                                textDialog.resultProperty().addListener { _, _, value ->
+                                textDialog.resultProperty().addListener { _, _, clsName ->
                                     try {
-                                        pluginList.add(this.pluginLoader.loadPlugin(value))
+                                        pluginList.add(this.pluginLoader.loadPlugin(clsName))
                                     } catch (e: PluginLoaderException) {
                                         Alert(
                                             Alert.AlertType.ERROR,
@@ -160,6 +163,7 @@ class UserInterface : Application() {
                         }
                     }
                 )
+                // List of all loaded plugins
                 box.center = ListView(pluginList).also { listView ->
                     // Display EditorPlugin.name rather than EditorPlugin.toString
                     listView.setCellFactory {
@@ -180,7 +184,7 @@ class UserInterface : Application() {
                 }
             }
         }
-        // Return new plugins list if OK is pressed
+        // Return new plugins list if OK is pressed, else an empty list
         return dialog.showAndWait().orElse(listOf())
     }
 
@@ -195,9 +199,6 @@ class UserInterface : Application() {
 
     fun addKeyStrokeListener(keyStroke: KeyStroke, callback: () -> Unit) = Platform.runLater {
         this.keyStrokeListeners[keyStroke] = callback
-        this.scene.setOnKeyPressed { keyEvent ->
-            this.keyStrokeListeners[keyEvent.asKeyStroke]?.invoke()
-        }
     }
 
     fun addTextChangedListener(callback: () -> Unit) = Platform.runLater {
@@ -213,18 +214,8 @@ class UserInterface : Application() {
             // Set up text
             dialog.title = titleText
             dialog.headerText = bodyText
-            // Return the entered text if OK is pressed, or null if CANCEL is pressed
-            dialog.setResultConverter { btnType ->
-                when (btnType.buttonData) {
-                    ButtonBar.ButtonData.OK_DONE -> dialog.contentText
-                    ButtonBar.ButtonData.CANCEL_CLOSE -> null
-                    else -> error("Invalid dialog box button")
-                }
-            }
             // Observe changes to the result
-            dialog.resultProperty().addListener { _, _, value: String? ->
-                callback(value)
-            }
+            dialog.resultProperty().addListener { _, _, value: String? -> callback(value) }
         }
         // Non-blocking show
         dialog.show()

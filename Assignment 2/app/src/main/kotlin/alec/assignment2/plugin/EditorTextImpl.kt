@@ -26,5 +26,4 @@ class EditorTextImpl(private val textControl: TextInputControl): EditorText {
         stop,
         value
     )
-
 }

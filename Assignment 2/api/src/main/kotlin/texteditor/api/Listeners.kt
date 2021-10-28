@@ -25,5 +25,3 @@ interface Listeners {
         prompt
     ) { consumer.accept(it) }
 }
-
-// Extension functions for Java interoperability

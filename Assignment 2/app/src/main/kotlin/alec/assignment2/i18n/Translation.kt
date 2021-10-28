@@ -19,6 +19,7 @@ sealed class Translation(val locale: Locale) {
     abstract val pluginLoaderClassNotFound: (String) -> String
     abstract val pluginLoaderNoConstructor: (String) -> String
     abstract val pluginLoaderNotPlugin: (String) -> String
+    abstract val pluginLoaderSyntax: (String) -> String
 
     companion object {
         operator fun get(locale: Locale): Translation = values.singleOrNull {
@@ -49,6 +50,9 @@ sealed class Translation(val locale: Locale) {
         }
         override val pluginLoaderNotPlugin: (String) -> String = {
             "Class '$it' is does not inherit from EditorPlugin"
+        }
+        override val pluginLoaderSyntax: (String) -> String = {
+            "Syntax error in file: \n $it"
         }
     }
 }

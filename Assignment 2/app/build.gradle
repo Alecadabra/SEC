@@ -30,5 +30,6 @@ application {
 dependencies {
     implementation project(':api')
     implementation project(':date-plugin')
+    implementation project(':find-plugin')
     implementation 'org.python:jython-slim:2.7.2'
 }
