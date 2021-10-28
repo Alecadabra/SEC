@@ -18,5 +18,5 @@ class Emoji(EditorPlugin):
     def getName(self):
         return "Emoji"
 
-    def start(self, listeners, editorText, locale):
+    def start(self, listeners, editorText):
         listeners.addTextChangedListener(lambda: _replaceEmoji(editorText))

@@ -7,37 +7,34 @@ import texteditor.api.FunctionKey;
 import texteditor.api.Listeners;
 
 import java.util.Locale;
+import java.util.ResourceBundle;
 
 public class FindPlugin implements EditorPlugin
 {
+    private final ResourceBundle strings = ResourceBundle.getBundle("strings");
+    private final String name = this.strings.getString("find");
+
     @NotNull
     @Override
     public String getName()
     {
-        return "Find";
+        return this.name;
     }
 
     @Override
-    public void start(@NotNull Listeners listeners,
-                      @NotNull EditorText editorText,
-                      @NotNull Locale locale)
+    public void start(@NotNull Listeners listeners, @NotNull EditorText editorText)
     {
-        listeners.addButton("Find", () -> find(listeners, editorText, locale));
-        listeners.addFunctionKeyListener(FunctionKey.F3, () -> find(listeners, editorText, locale));
+        listeners.addButton(this.name, () -> find(listeners, editorText));
+        listeners.addFunctionKeyListener(FunctionKey.F3, () -> find(listeners, editorText));
     }
 
-    private void find(Listeners listeners,
-                      EditorText editorText,
-                      Locale locale)
+    private void find(Listeners listeners, EditorText editorText)
     {
-        listeners.textDialog(this, "Enter a search term",
-                (String searchTerm) -> findSearchTerm(searchTerm, listeners, editorText, locale));
+        listeners.textDialog(this, this.strings.getString("enter_search_term"),
+                (String searchTerm) -> findSearchTerm(searchTerm, listeners, editorText));
     }
 
-    private void findSearchTerm(String searchTerm,
-                                Listeners listeners,
-                                EditorText editorText,
-                                Locale locale)
+    private void findSearchTerm(String searchTerm, Listeners listeners, EditorText editorText)
     {
         String area = editorText.get(editorText.getCaret(), editorText.getLength());
         int areaIdx = area.indexOf(searchTerm);

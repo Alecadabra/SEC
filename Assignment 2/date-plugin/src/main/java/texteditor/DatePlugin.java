@@ -13,26 +13,25 @@ import java.util.ResourceBundle;
 
 public class DatePlugin implements EditorPlugin
 {
+    private final String name = ResourceBundle.getBundle("strings").getString("date");
+
     @NotNull
     @Override
     public String getName()
     {
-        return "Date";
+        return this.name;
     }
 
     @Override
     public void start(@NotNull Listeners listeners,
-                      @NotNull EditorText editorText,
-                      @NotNull Locale locale)
+                      @NotNull EditorText editorText)
     {
-        ResourceBundle strings = ResourceBundle.getBundle("strings", locale);
-        String name = strings.getString("date");
-        listeners.addButton(name, () ->
+        listeners.addButton(this.name, () ->
         {
             ZonedDateTime dateTime = ZonedDateTime.now();
             DateTimeFormatter dtf = DateTimeFormatter
                     .ofLocalizedDateTime(FormatStyle.MEDIUM)
-                    .withLocale(locale);
+                    .withLocale(Locale.getDefault());
             String formattedDateTime = dtf.format(dateTime);
 
             editorText.set(editorText.getCaret(), editorText.getCaret(), formattedDateTime);

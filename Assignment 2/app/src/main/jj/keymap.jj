@@ -1,0 +1,137 @@
+PARSER_BEGIN(KeymapParser)
+package alec.assignment2.keymap;
+
+import alec.assignment2.plugin.KeyStroke;
+import javafx.scene.input.KeyCode;
+import alec.assignment2.keymap.KeymapTextAction;
+import alec.assignment2.keymap.KeymapPositionAction;
+import java.util.HashMap;
+import java.util.Map;
+import kotlin.Pair;
+
+public class KeymapParser {}
+
+PARSER_END(KeymapParser)
+
+SKIP : {
+    " " | "\t" | "\r"
+}
+
+// Different state for when we're inside a string. We switch to IN_STRING when we see a double
+// quote, and switch back to DEFAULT when we see the next one.
+<IN_STRING> TOKEN : {
+    < STR_CONTENT: ( ~["\""] )* > |
+    < STR_END: "\"" > : DEFAULT
+}
+
+TOKEN: {
+    < SHIFT: "shift" > | < CTRL: "ctrl" > | < ALT: "alt" > | < KEY: ["a"-"z"] > |
+    < COMBINE: "+" > | < ASSIGN: "=" > |
+    < INSERT: "insert" > | < DELETE: "delete" > |
+    < STR_START: "\"" > : IN_STRING |
+    < AT_START: "at start of line" > | < AT_CARET: "at caret" > |
+    < NEWLINE: "\n" >
+}
+
+// Parses the entire file
+public Map<KeyStroke, KeymapAction> parse() :
+{
+    Map<KeyStroke, KeymapAction> map = new HashMap<KeyStroke, KeymapAction>();
+
+    Pair<KeyStroke, KeymapAction> strokeActionPair;
+}
+{
+    strokeActionPair = keyMapAction()
+    {
+        map.put(strokeActionPair.getFirst(), strokeActionPair.getSecond());
+    }
+
+    (
+        <NEWLINE>
+        strokeActionPair = keyMapAction()
+        {
+            map.put(strokeActionPair.getFirst(), strokeActionPair.getSecond());
+        }
+    )*
+
+    ( <NEWLINE> )?
+
+    <EOF>
+    {
+        return map;
+    }
+}
+
+// Parses one line
+public Pair<KeyStroke, KeymapAction> keyMapAction() :
+{
+    KeyStroke keyStroke;
+    KeymapTextAction action;
+    String text;
+    KeymapPositionAction positionAction;
+}
+{
+    keyStroke = parseKeyStroke()
+    <ASSIGN>
+    action = parseTextAction()
+    text = parseString()
+    positionAction = parsePositionAction()
+    {
+        return new Pair<KeyStroke, KeymapAction>(
+            keyStroke,
+            new KeymapAction(action, text, positionAction)
+        );
+    }
+}
+
+// Parses the ctrl+shift+alt+i part
+public KeyStroke parseKeyStroke() :
+{
+    Token shift = null;
+    Token ctrl = null;
+    Token alt = null;
+    Token key;
+}
+{
+    ( ctrl = <CTRL> <COMBINE> )?
+    ( shift = <SHIFT> <COMBINE> )?
+    ( alt = <ALT> <COMBINE> )?
+    ( key = <KEY> )
+    {
+        KeyCode code = KeyCode.getKeyCode(key.image.toUpperCase());
+
+        return new KeyStroke(code, shift != null, ctrl != null, alt != null);
+    }
+}
+
+// Parses the insert or delete part
+public KeymapTextAction parseTextAction() :
+{
+}
+{
+    <INSERT> { return KeymapTextAction.INSERT; }
+    |
+    <DELETE> { return KeymapTextAction.DELETE; }
+}
+
+// Parses the quoted string
+public String parseString() :
+{
+    Token string;
+}
+{
+    <STR_START> string = <STR_CONTENT> <STR_END>
+    {
+        return string.image;
+    }
+}
+
+// Parses the at caret or at start of line part
+public KeymapPositionAction parsePositionAction() :
+{
+}
+{
+    <AT_START> { return KeymapPositionAction.AT_START; }
+    |
+    <AT_CARET> { return KeymapPositionAction.AT_CARET; }
+}

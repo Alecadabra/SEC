@@ -27,5 +27,5 @@ class PluginController(private val ui: UserInterface) : Listeners {
         this.ui.showTextDialogBox(plugin.name, prompt, callback)
     }
 
-    fun startPlugin(plugin: EditorPlugin) = plugin.start(this, this.editorText, this.ui.locale)
+    fun startPlugin(plugin: EditorPlugin) = plugin.start(this, this.editorText)
 }

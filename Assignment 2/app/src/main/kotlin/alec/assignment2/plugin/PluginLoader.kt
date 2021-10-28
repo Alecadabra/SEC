@@ -8,7 +8,9 @@ import texteditor.api.EditorPlugin
 import java.io.File
 import java.lang.RuntimeException
 
-class PluginLoader(private val translation: Translation) {
+object PluginLoader {
+    private val translation = Translation()
+
     /**
      * Loads a python script from the given [path].
      *
