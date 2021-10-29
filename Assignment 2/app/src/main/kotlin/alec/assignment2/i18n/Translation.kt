@@ -1,7 +1,11 @@
 package alec.assignment2.i18n
 
-import java.util.*
+import java.util.Locale
 
+/**
+ * Handles translations of strings using a sealed class, where each implementation is a valid
+ * translation that maps to a locale.
+ */
 sealed class Translation(val locale: Locale) {
     abstract val appName: String
 
@@ -27,12 +31,19 @@ sealed class Translation(val locale: Locale) {
     abstract val pluginLoaderSyntax: (String) -> String
 
     companion object {
+        /**
+         * Nice syntactic sugar to get the correct implementation of this class for a [locale].
+         * E.g. `Translation(Locale.forLanguageTag("en-AU"))` gives `EnglishAustralia`.
+         */
         operator fun invoke(locale: Locale = Locale.getDefault()) = values.singleOrNull {
+            Locale.forLanguageTag("en-AU")
             it.locale == locale
         } ?: DEFAULT
 
+        /** The fallback Translation. */
         private val DEFAULT = EnglishAustralia
 
+        /** All implemented Translations. */
         private val values = listOf(EnglishAustralia, EnglishPirate)
     }
 
@@ -65,7 +76,7 @@ sealed class Translation(val locale: Locale) {
         }
     }
 
-    // This is a thanks for extending the deadline <3
+    // This is your thanks for extending the assignment deadline <3
     object EnglishPirate : Translation(Locale.forLanguageTag("en-PT")) {
         override val appName: String = "Text editarr"
         override val loadPluginsAndScripts: String = "Load yer snakes and planks"

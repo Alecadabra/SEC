@@ -2,6 +2,8 @@ from texteditor.api import EditorPlugin
 from java.util import Locale
 from collections import defaultdict
 
+# A Jython script to demonstrate the plugin/scripting API of the app.
+
 # Helper function
 def _replaceEmoji(editorText):
     a, b = editorText.caret - 3, editorText.caret
@@ -15,6 +17,7 @@ def _replaceEmoji(editorText):
             # Not a match - do nothing
             pass
 
+# Maps locale language tags to the corresponding reported script name
 names = defaultdict(
     lambda: 'Emoji',
     {
@@ -25,6 +28,10 @@ names = defaultdict(
 
 # The script implementation
 class Emoji(EditorPlugin):
+    '''
+    A text editor plugin to replace typed strings ':-)' with a smiley emoji.
+    '''
+
     def getName(self):
         return names[Locale.getDefault().toLanguageTag()]
 

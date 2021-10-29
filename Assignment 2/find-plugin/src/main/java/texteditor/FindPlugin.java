@@ -6,7 +6,7 @@ import texteditor.api.EditorText;
 import texteditor.api.FunctionKey;
 import texteditor.api.Listeners;
 
-import java.util.Locale;
+import java.text.Normalizer;
 import java.util.ResourceBundle;
 
 public class FindPlugin implements EditorPlugin
@@ -36,11 +36,20 @@ public class FindPlugin implements EditorPlugin
 
     private void findSearchTerm(String searchTerm, Listeners listeners, EditorText editorText)
     {
+        // Get area after caret
         String area = editorText.get(editorText.getCaret(), editorText.getLength());
-        int areaIdx = area.indexOf(searchTerm);
+
+        // Normalise
+        String normalSearchTerm = Normalizer.normalize(searchTerm, Normalizer.Form.NFKC);
+        String normalArea = Normalizer.normalize(area, Normalizer.Form.NFKC);
+
+        // Search
+        int areaIdx = normalArea.indexOf(normalSearchTerm);
         if(areaIdx != -1)
         {
-            int fullIdx = editorText.getCaret() + areaIdx;
+            int fullIdx = Math.min(
+                    editorText.getCaret() + areaIdx,
+                    editorText.getLength() - 1);
             editorText.setSelectionCaret(fullIdx);
             editorText.setSelectionAnchor(fullIdx + searchTerm.length());
         }

@@ -3,6 +3,9 @@ package alec.assignment2.plugin
 import javafx.scene.control.TextInputControl
 import texteditor.api.EditorText
 
+/**
+ * The implementation of the api interface [EditorText], using a JavaFX [textControl].
+ */
 class EditorTextImpl(private val textControl: TextInputControl): EditorText {
     override var caret: Int
         get() = textControl.caretPosition

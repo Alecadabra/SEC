@@ -8,6 +8,9 @@ import texteditor.api.EditorText
 import texteditor.api.FunctionKey
 import texteditor.api.Listeners
 
+/**
+ * An implementation of the api interface [Listeners], using the [ui] hooks.
+ */
 class PluginController(private val ui: UserInterface) : Listeners {
     private val editorText: EditorText = EditorTextImpl(this.ui.textController)
 
@@ -27,5 +30,6 @@ class PluginController(private val ui: UserInterface) : Listeners {
         this.ui.showTextDialogBox(plugin.name, prompt, callback)
     }
 
+    /** SoC - Handles starting a plugin with the right parameters. */
     fun startPlugin(plugin: EditorPlugin) = plugin.start(this, this.editorText)
 }

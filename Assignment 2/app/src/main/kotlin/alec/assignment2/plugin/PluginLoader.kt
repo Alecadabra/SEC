@@ -8,6 +8,10 @@ import texteditor.api.EditorPlugin
 import java.io.File
 import java.lang.RuntimeException
 
+/**
+ * Handles loading of implementations of the plugin API, through Jython interpreted Python script
+ * files, and Java reflection loaded JVM plugins.
+ */
 object PluginLoader {
     private val translation = Translation()
 
@@ -78,6 +82,7 @@ object PluginLoader {
     }
 }
 
+/** Describes an error that occurred inside the [PluginLoader]. */
 class PluginLoaderException(
     message: String,
     cause: Throwable? = null
