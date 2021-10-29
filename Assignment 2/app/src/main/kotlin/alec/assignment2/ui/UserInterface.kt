@@ -255,7 +255,7 @@ class UserInterface : Application() {
                     it.setOnAction {
                         // Select a python script file
                         FileChooser().also { fileChooser ->
-                            fileChooser.initialDirectory = File(".")
+                            fileChooser.initialDirectory = File("../")
                             fileChooser.title = translation.scriptLocationInput
                             fileChooser.extensionFilters.addAll(
                                 FileChooser.ExtensionFilter(
@@ -355,7 +355,7 @@ class UserInterface : Application() {
     private fun saveFile(window: Window) {
         selectEncodingDialog()?.let { encoding ->
             FileChooser().let { fileChooser ->
-                fileChooser.initialDirectory = File(".")
+                fileChooser.initialDirectory = File("../")
                 fileChooser.title = translation.fileLoad
                 fileChooser.extensionFilters.add(
                     FileChooser.ExtensionFilter(translation.filesAll, "*.*"),
@@ -380,7 +380,7 @@ class UserInterface : Application() {
     private fun loadFile(window: Window) {
         selectEncodingDialog()?.also { encoding ->
             FileChooser().let { fileChooser ->
-                fileChooser.initialDirectory = File(".")
+                fileChooser.initialDirectory = File("../")
                 fileChooser.title = translation.fileLoad
                 fileChooser.extensionFilters.add(
                     FileChooser.ExtensionFilter(translation.filesAll, "*.*")
