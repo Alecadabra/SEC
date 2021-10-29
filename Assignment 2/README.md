@@ -45,4 +45,4 @@ Provides a button to insert the current date/time at the caret.
 
 Path [`emoji.py`](emoji.py)
 
-Replaces occurrences of `:-)` with the emoji 😊
+Replaces occurrences of `:-)` with the emoji 😊.
