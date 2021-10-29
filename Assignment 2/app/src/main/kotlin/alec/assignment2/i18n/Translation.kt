@@ -65,33 +65,34 @@ sealed class Translation(val locale: Locale) {
         }
     }
 
-    // Sorry! Didn't have time to write anything special for these :'(
+    // This is a thanks for extending the deadline <3
     object EnglishPirate : Translation(Locale.forLanguageTag("en-PT")) {
-        override val appName: String = "Text Editor"
-        override val loadPluginsAndScripts: String = "Load Plugins and Scripts"
-        override val loadScript: String = "Load Script"
-        override val loadPlugin: String = "Load Plugin"
-        override val scriptLocationInput: String = "Select plugin to load"
-        override val pluginNameInput: String = "Provide the fully qualified class name of the plugin"
-        override val filesPython: String = "Python Files"
-        override val filesAll: String = "All Files"
-        override val ok: String = "OK"
-        override val cancel: String = "Cancel"
-        override val fileIO: String = "File IO"
-        override val fileSelectEncoding: String = "Select file encoding"
-        override val fileSave: String = "Save"
-        override val fileLoad: String = "Load"
+        override val appName: String = "Text editarr"
+        override val loadPluginsAndScripts: String = "Load yer snakes and planks"
+        override val loadScript: String = "Load snake"
+        override val loadPlugin: String = "Load plank"
+        override val scriptLocationInput: String = "Select plank to load"
+        override val pluginNameInput: String = "What's the treasure map to yer plank"
+        override val filesPython: String = "Snake scrolls"
+        override val filesAll: String = "All yer scrolls"
+        override val ok: String = "Yarr!"
+        override val cancel: String = "Nay"
+        override val fileIO: String = "Scroll chests"
+        override val fileSelectEncoding: String =
+            "How many brass details do you want on the chest (Unnecessary Timber Furniture)"
+        override val fileSave: String = "Save yer scroll to a chest"
+        override val fileLoad: String = "Load a scroll from a chest"
         override val pluginLoaderClassNotFound: (String) -> String = {
-            "Class '$it' not found"
+            "Aaarrrgh, plank '$it' was not at the X marks the spot!"
         }
         override val pluginLoaderNoConstructor: (String) -> String = {
-            "Class '$it' has no zero-argument constructor"
+            "Aaarrrgh, plank '$it' is in a locked chest!"
         }
         override val pluginLoaderNotPlugin: (String) -> String = {
-            "Class '$it' is does not inherit from EditorPlugin"
+            "Aaarrrgh, '$it' isn't even a plank!"
         }
         override val pluginLoaderSyntax: (String) -> String = {
-            "Syntax error in file: \n $it"
+            "Aaarrrgh, the snake bit me: \n $it"
         }
     }
 }

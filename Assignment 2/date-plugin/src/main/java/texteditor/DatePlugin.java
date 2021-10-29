@@ -13,7 +13,7 @@ import java.util.ResourceBundle;
 
 public class DatePlugin implements EditorPlugin
 {
-    private final String name = ResourceBundle.getBundle("strings").getString("date");
+    private final String name = ResourceBundle.getBundle("date_strings").getString("date");
 
     @NotNull
     @Override
@@ -37,4 +37,7 @@ public class DatePlugin implements EditorPlugin
             editorText.set(editorText.getCaret(), editorText.getCaret(), formattedDateTime);
         });
     }
+
+    // Some main method is required for gradle to not complain
+    public static void main(String[] args) {}
 }

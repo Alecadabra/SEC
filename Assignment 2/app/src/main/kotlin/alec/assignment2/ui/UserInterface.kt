@@ -28,7 +28,8 @@ class UserInterface : Application() {
 
     // I18N
     /** Contains the localised strings to display on the user interface. */
-    private val translation = Translation()
+    private val translation by lazy { Translation() }
+
     // ButtonTypes with l10n
     private val okButtonType: ButtonType get() = ButtonType(
         translation.ok,
@@ -217,7 +218,7 @@ class UserInterface : Application() {
         }
         dialog.dialogPane.buttonTypes.add(this.okButtonType)
         dialog.setResultConverter { buttonType ->
-            when (buttonType.buttonData) {
+            when (buttonType?.buttonData) {
                 ButtonBar.ButtonData.OK_DONE -> pluginList
                 else -> null
             }

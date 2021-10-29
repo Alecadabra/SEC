@@ -6,6 +6,10 @@ repositories {
     mavenCentral()
 }
 
+application {
+    mainClass = 'texteditor.DatePlugin'
+}
+
 dependencies {
     implementation project(':api')
 }

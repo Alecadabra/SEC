@@ -11,7 +11,7 @@ import java.util.ResourceBundle;
 
 public class FindPlugin implements EditorPlugin
 {
-    private final ResourceBundle strings = ResourceBundle.getBundle("strings");
+    private final ResourceBundle strings = ResourceBundle.getBundle("find_strings");
     private final String name = this.strings.getString("find");
 
     @NotNull
@@ -45,4 +45,7 @@ public class FindPlugin implements EditorPlugin
             editorText.setSelectionAnchor(fullIdx + searchTerm.length());
         }
     }
+
+    // Some main method is required for gradle to not complain
+    public static void main(String[] args) {}
 }

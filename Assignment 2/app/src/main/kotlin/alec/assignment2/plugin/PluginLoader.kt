@@ -28,7 +28,7 @@ object PluginLoader {
             // Execute the file containing the script
             try {
                 py.execfile(path)
-            } catch (e: PySyntaxError) {
+            } catch (e: PyException) {
                 throw PluginLoaderException(translation.pluginLoaderSyntax(e.toString()), e)
             }
 
