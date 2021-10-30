@@ -4,3 +4,4 @@ app/build
 date-plugin/build
 find-plugin/build
 api.iml
+.gradle
