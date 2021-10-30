@@ -36,7 +36,6 @@ sealed class Translation(val locale: Locale) {
          * E.g. `Translation(Locale.forLanguageTag("en-AU"))` gives `EnglishAustralia`.
          */
         operator fun invoke(locale: Locale = Locale.getDefault()) = values.singleOrNull {
-            Locale.forLanguageTag("en-AU")
             it.locale == locale
         } ?: DEFAULT
 
