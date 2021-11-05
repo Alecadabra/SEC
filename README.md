@@ -71,10 +71,22 @@ Part of my Computer Science degree at Curtin University in 2021.
 **Syllabus**
 
 > This unit covers advanced software architectural and design concepts, including the development of multithreaded
-design structures, build engineering, the integration of multiple languages into a single application, and the
-design and implementation of domain specific languages. Emphasis is given both to the practical implementation
-of these concepts and to the rationales for their use in specific situations.
+> design structures, build engineering, the integration of multiple languages into a single application, and the
+> design and implementation of domain specific languages. Emphasis is given both to the practical implementation
+> of these concepts and to the rationales for their use in specific situations.
 
+## [Assignment 1](Assignment%201)
+
+A JavaFX app to walk a directory path and compare all text files to each other,
+showing similarity scores. Demonstrates ability to use multithreading on
+the JVM.
+
+## [Assignment 2](Assignment%202)
+
+A JavaFX GUI text editor with a plugin/scripting API, key mappings specified in
+a custom DSL, file loading/saving with custom encoding, and full i18n for
+locales `en-AU` (Australian English) and 
+`en-PT` (Pirate speak :p).
 
 ## [Practical Exercises](Practical%20Exercises)
 
