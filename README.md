@@ -1,6 +1,6 @@
 # Software Engineering Concepts
 
-Part of my Computer Science degree at Curtin University in 2021.
+Part of my Computer Science degree at Curtin University in 2021. My final mark was 86%.
 
 <table>
   <thead>
